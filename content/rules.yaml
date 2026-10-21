@@ -1,0 +1,439 @@
+# Tembusu Bank — UI copy rules (DRAFT v0.4)
+#
+# Tembusu Bank is fictional. These rules are loosely modelled on common
+# banking practice. They are NOT real MAS, legal or compliance requirements.
+#
+# This file is the single source of truth: the checker reads it, and the
+# human-readable style guide is written from it.
+#
+# ---------------------------------------------------------------------------
+# Field reference
+#   id         Stable ID, never reused. Prefix shows the category, except
+#              that every AI-layer rule uses the AI- prefix.
+#   name       Short, human-readable name.
+#   category   personal-data | banned-phrase | terminology | format
+#              | disclosure | plain-language
+#   layer      guard  Runs first. Any hit stops the copy being sent to the AI.
+#              rule   Deterministic code check.
+#              ai     Judgment call by the model. Always shown as a suggestion
+#                     for a human to accept or dismiss.
+#   severity   blocker | needs-fix | suggestion
+#              Guard rules are always `blocker`. Severity and layer are
+#              separate: a guard hit stops the AI step whatever severity says,
+#              so a lower severity on a guard rule would contradict itself.
+#   contexts   Optional. Only run the rule for copy in these contexts
+#              (button | error | confirmation | promo-banner | rate-card
+#              | help-text | notification | email-snippet).
+#              Omit to run everywhere. If the copy's context isn't given,
+#              the rule runs. Guard rules never use this.
+#   check      How the rule is checked (see check types below).
+#   why        Why the rule exists. Shown to the reviewer next to the finding.
+#   fix        What the writer should do instead.
+#   examples   bad / good copy. Used in the style guide and in AI prompts.
+#
+# Check types
+#   pattern      Regex match (JavaScript syntax). Optional `flags`,
+#                `validator` (e.g. luhn) and `allow` (exact matches that are
+#                fine, e.g. the bank's own published address).
+#   phrases      Any listed phrase. Case-insensitive, whole words. Both the
+#                copy and the phrases are normalised first: curly quotes and
+#                apostrophes become straight, hyphens become spaces, repeated
+#                spaces collapse to one. So "can't lose" also catches
+#                "can’t lose", and "zero risk" also catches "zero-risk".
+#   replace      Map of wrong wording -> preferred wording. Case-insensitive.
+#                Not normalised (hyphens matter here, e.g. "log-in").
+#   names        Official names with exact casing. Finds each name
+#                case-insensitively (whole words, spaces collapsed) and flags
+#                any match whose casing differs from the official form.
+#   conditional  If `when` matches, every pattern in `require` must also
+#                match. Optional `flags` apply to all patterns.
+#   max-words    Flags any sentence longer than `limit` words.
+#   ai           `guidance` for the model. Never decided by code.
+# ---------------------------------------------------------------------------
+
+version: 0.4
+bank: Tembusu Bank
+
+rules:
+
+  # ===== Layer 1: personal-data guard ======================================
+  # Anything found here blocks the AI step until it is replaced with a
+  # placeholder such as {name}, {nric}, {phone}, {email}, {card} or {account}.
+  # If a hit is wrong (not personal data), a reviewer can override it with
+  # a written reason. Overrides are logged in the report.
+  # In this layer a false alarm costs seconds; a miss sends data to an
+  # outside model. So patterns lean towards flagging.
+
+  - id: PD-001
+    name: NRIC or FIN number
+    category: personal-data
+    layer: guard
+    severity: blocker
+    check:
+      type: pattern
+      pattern: '\b[STFGM]\d{7}[A-Z]\b'
+      flags: i
+    why: >
+      Identity numbers must never appear in design files, test copy or AI
+      prompts, even as examples. Real-looking numbers get copied into
+      screenshots and tools.
+    fix: Replace with the placeholder {nric}.
+    examples:
+      bad: "Your NRIC S1234567D has been verified."
+      good: "Your NRIC {nric} has been verified."
+
+  - id: PD-002
+    name: Singapore phone number
+    category: personal-data
+    layer: guard
+    severity: blocker
+    check:
+      type: pattern
+      # Either "+65" (with or without a space) or a word boundary, so
+      # "+6591234567" is caught as well as "+65 9123 4567" (fixed in v0.4).
+      pattern: '(?:\+65[\s-]?|\b)[3689]\d{3}[\s-]?\d{4}\b'
+      allow: []   # the bank's own published numbers, written exactly as
+                  # they appear in copy (e.g. a +65 6xxx xxxx overseas line)
+    why: >
+      Mobile and landline numbers can identify a person. Banks also publish
+      landline hotlines (6xxx xxxx, or +65 for overseas callers), but the
+      guard can't tell a bank's number from a personal one by its pattern,
+      and it doesn't judge from wording like "contact us at". So every
+      number is flagged except 1800 numbers (which don't match) and those
+      in `allow`.
+    fix: >
+      Replace a personal number with {phone}. For the bank's own number, use
+      {hotline}, so it is filled in from one central setting.
+    examples:
+      bad: "We'll SMS you at +65 9123 4567."
+      good: "We'll SMS you at {phone}."
+
+  - id: PD-003
+    name: Personal email address
+    category: personal-data
+    layer: guard
+    severity: blocker
+    check:
+      type: pattern
+      pattern: '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
+      # List each published address, not the whole domain: a staff
+      # member's work address (jane.tan@tembusu.example) is personal data
+      # too (fixed in v0.4).
+      allow:
+        - "help@tembusu.example"
+    why: >
+      Email addresses identify a person. That includes staff addresses at the
+      bank's own domain, such as a relationship manager's.
+    fix: >
+      Replace with {email}. Only the bank's published addresses (listed in
+      `allow`) can stay.
+    examples:
+      bad: "Receipt sent to jane.tan@example.com."
+      good: "Receipt sent to {email}."
+
+  - id: PD-004
+    name: Card number
+    category: personal-data
+    layer: guard
+    severity: blocker
+    check:
+      type: pattern
+      pattern: '\b(?:\d[ -]?){12,18}\d\b'
+      validator: luhn   # only flag digit runs that pass the card checksum
+    why: >
+      Full card numbers are among the most sensitive data a bank holds.
+      The checksum test cuts false alarms from other long numbers.
+    fix: Replace with {card}, or show only the last 4 digits.
+    examples:
+      bad: "Card 4111 1111 1111 1111 is blocked."
+      good: "Card ending {card_last4} is blocked."
+
+  - id: PD-005
+    name: Bank account number
+    category: personal-data
+    layer: guard
+    severity: blocker
+    check:
+      type: pattern
+      # Tembusu account format (fictional, set by us): 3-6-3 digits,
+      # separated by hyphens or spaces, e.g. 123-456789-001.
+      pattern: '\b\d{3}[-\s]\d{6}[-\s]\d{3}\b'
+    why: >
+      An account number identifies a customer and is needed to move money,
+      so it must never reach design files or AI prompts. Matching only the
+      bank's own format keeps false alarms low; the other guard rules and
+      the reviewer override cover the rest.
+    fix: Replace with {account}.
+    examples:
+      bad: "S$500 has been sent to account 123-456789-001."
+      good: "S$500 has been sent to account {account}."
+
+  # ===== Layer 2: deterministic rules ======================================
+
+  - id: BP-001
+    name: Promised returns or no risk
+    category: banned-phrase
+    layer: rule
+    severity: blocker
+    check:
+      type: phrases
+      phrases:
+        - guaranteed returns
+        - guaranteed profit
+        - guaranteed income
+        - risk-free
+        - risk free
+        - no risk
+        - zero risk
+        - 0 risk
+        - can't lose
+        - cant lose
+        - cannot lose
+    why: >
+      Copy must never promise investment outcomes or deny risk. This is one of
+      the most common reasons copy is sent back by compliance.
+    fix: Describe what the product does and point to the risks and terms.
+    examples:
+      bad: "Enjoy guaranteed returns with zero risk."
+      good: "Earn returns that may go up or down. Investments involve risk."
+
+  - id: BP-002
+    name: Scam-like urgency
+    category: banned-phrase
+    layer: rule
+    severity: needs-fix
+    check:
+      type: phrases
+      phrases:
+        - act now
+        - urgent action required
+        - your account will be suspended
+        - last chance
+        - click the link below
+        - verify your account immediately
+    why: >
+      These phrases mirror common phishing messages. Customers are taught to
+      distrust them, so genuine bank copy should never sound like a scam.
+    fix: State the facts calmly and tell customers where to check in the app.
+    examples:
+      bad: "Urgent action required: click the link below."
+      good: "Please review your account details in the Tembusu app."
+
+  - id: TM-001
+    name: Preferred wording
+    category: terminology
+    layer: rule
+    severity: suggestion
+    check:
+      type: replace
+      replace:
+        "login to": "log in to"
+        "log-in": "log in"
+        "PIN number": "PIN"
+        "e-mail": "email"
+    why: Consistent wording makes the product feel trustworthy and predictable.
+    fix: Use the preferred wording.
+    examples:
+      bad: "Login to view your PIN number."
+      good: "Log in to view your PIN."
+
+  - id: TM-002
+    name: Product names
+    category: terminology
+    layer: rule
+    severity: needs-fix
+    check:
+      type: names
+      names:
+        - Tembusu Growth Account
+        - Tembusu Everyday Account
+        - Tembusu Rewards Card
+        - Tembusu Global Equity Fund
+    why: >
+      Product names appear in terms, statements and adverts. Copy that changes
+      their casing looks careless, and customers may not be sure it refers to
+      the same product.
+    fix: Use the product's official name exactly as listed.
+    examples:
+      bad: "Open a Tembusu growth account today."
+      good: "Open a Tembusu Growth Account today."
+
+  - id: FM-001
+    name: Currency must be S$
+    category: format
+    layer: rule
+    severity: needs-fix
+    check:
+      type: pattern
+      pattern: '(?<![A-Z])\$\s?\d'
+    why: >
+      A bare $ is ambiguous for customers who also hold foreign-currency
+      accounts. US$ and other prefixed amounts are not flagged.
+    fix: Write Singapore dollars as S$, e.g. S$1,000.00.
+    examples:
+      bad: "Transfer $500 now."
+      good: "Transfer S$500 now."
+
+  - id: FM-002
+    name: Unambiguous dates
+    category: format
+    layer: rule
+    severity: suggestion
+    check:
+      type: pattern
+      pattern: '\b\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}\b'
+    why: 05/11/2026 reads as May or November depending on the reader.
+    fix: Write the month as a word, e.g. 5 Nov 2026.
+    examples:
+      bad: "Payment due 05/11/2026."
+      good: "Payment due 5 Nov 2026."
+
+  - id: DC-001
+    name: Interest rate disclosure
+    category: disclosure
+    layer: rule
+    severity: needs-fix
+    check:
+      type: conditional
+      flags: i   # "Interest:" and "T&Cs Apply" count too (fixed in v0.4)
+      # [^.] keeps the match inside one sentence. The optional "p.a." after
+      # the % is skipped first, because its full stops would otherwise end
+      # the match early (bug found by T27, fixed in v0.3).
+      # \b stops "rate" matching inside words like "corporate" (fixed in v0.4).
+      when: '\b(?:interest|rate)[^.]{0,40}\d+(?:\.\d+)?\s?%|\d+(?:\.\d+)?\s?%(?:\s?p\.a\.)?[^.]{0,40}\b(?:interest|rate)'
+      require:
+        - 'p\.a\.'
+        - 'T&Cs apply|terms and conditions apply|see terms'
+    why: >
+      An interest rate without "p.a." and a pointer to the terms can mislead
+      customers about what they will actually earn.
+    fix: Add "p.a." after the rate and "T&Cs apply" (or a link to terms).
+    examples:
+      bad: "Earn 2.5% interest on your savings."
+      good: "Earn 2.5% p.a. interest on your savings. T&Cs apply."
+
+  - id: DC-002
+    name: Investment risk warning
+    category: disclosure
+    layer: rule
+    severity: needs-fix
+    # Buttons, errors and confirmations are too short to carry a warning,
+    # and a confirmation comes after the customer has already decided.
+    contexts: [promo-banner, rate-card, email-snippet, notification]
+    check:
+      type: conditional
+      flags: i
+      when: '\b(?:invest(?:ing|ment|ments)?|unit trusts?|mutual funds?|equity funds?|stocks?|bonds?|ETFs?|portfolios?)\b'
+      require:
+        - 'involves? risks?|may (?:go )?(?:up or )?down|(?:may|can|could) (?:fall|lose)|not (?:capital )?(?:protected|guaranteed)'
+    why: >
+      Copy that promotes an investment without saying its value can fall
+      leaves customers expecting only gains. A short warning next to the
+      offer is the minimum.
+    fix: >
+      Add a short risk warning in the same message, e.g. "Investments involve
+      risk. The value may go down as well as up."
+    examples:
+      bad: "Invest in the Tembusu Global Equity Fund from S$100 a month."
+      good: "Invest in the Tembusu Global Equity Fund from S$100 a month. Investments involve risk."
+
+  - id: PL-001
+    name: Long sentence
+    category: plain-language
+    layer: rule
+    severity: suggestion
+    check:
+      type: max-words
+      limit: 25
+    why: >
+      Banking copy is often read under stress or by older customers. Long
+      sentences hide the one thing they need to know.
+    fix: Split it, and lead with what the customer needs to do.
+    examples:
+      bad: "To make sure that your transfer is processed on the same day, please submit your instructions before 3pm on a business day, otherwise it will be processed the next business day."
+      good: "Submit before 3pm on a business day for same-day transfers. Later transfers go out the next business day."
+
+  # ===== Layer 3: AI judgment =============================================
+  # Only for what code can't reliably catch. Findings are always suggestions.
+
+  - id: AI-001
+    name: Implied promise
+    category: banned-phrase
+    layer: ai
+    severity: suggestion
+    check:
+      type: ai
+      guidance: >
+        Flag copy that implies a guaranteed outcome, effortless gains or no
+        downside, even if it avoids the phrases in BP-001. Quote the exact
+        words and explain what a customer might wrongly assume.
+    why: The phrase list can't catch every way of implying a promise.
+    fix: State what the product does, not what the customer is sure to get.
+    examples:
+      bad: "Watch your savings grow without lifting a finger."
+      good: "Set up a monthly transfer to your savings account."
+
+  - id: AI-002
+    name: Error message blames or alarms
+    category: plain-language
+    layer: ai
+    severity: suggestion
+    check:
+      type: ai
+      guidance: >
+        Flag error and warning messages that blame the customer, sound
+        alarming without reason, or don't say what to do next.
+    why: >
+      Customers who feel blamed or panicked make mistakes or call the hotline.
+      Calm, specific copy gets them back on track.
+    fix: Say what happened neutrally, then what to do next.
+    examples:
+      bad: "You entered the wrong OTP. Your account may be locked."
+      good: "That code didn't match. Check your latest SMS and try again."
+
+  - id: AI-003
+    name: Unexplained acronym
+    category: plain-language
+    layer: ai
+    severity: suggestion
+    check:
+      type: ai
+      guidance: >
+        Flag acronyms and initialisms that a Singapore bank customer might not
+        understand from this text alone. You see one string at a time, so
+        judge only what is in front of you, and do not assume an earlier
+        screen explained it. Do not flag terms most customers know: PIN, ATM,
+        SMS, OTP, NRIC, PayNow, S$, p.a., T&Cs. Do not flag an acronym that
+        is spelled out in the same text. Quote the acronym. For buttons and
+        short labels, suggest plain words rather than a spelled-out form.
+    why: >
+      Banks use internal shorthand that customers never learned. An
+      unfamiliar acronym makes customers unsure what will happen, so they
+      hesitate, guess, or call the hotline.
+    fix: Use plain words, or spell the acronym out the first time.
+    examples:
+      bad: "Your SOA for October is ready."
+      good: "Your October statement is ready."
+
+  - id: AI-004
+    name: Jargon
+    category: plain-language
+    layer: ai
+    severity: suggestion
+    check:
+      type: ai
+      guidance: >
+        Flag banking or technical words that an older or less confident
+        customer might not understand, such as "remittance", "value date",
+        "tenor", "amortisation", "debit mandate" or "authenticate". Quote the
+        word and suggest an everyday alternative. Do not flag official product
+        names, required legal wording ("p.a.", "T&Cs apply"), or acronyms
+        (those belong to AI-003).
+    why: >
+      Many customers read banking copy under stress or in a second language.
+      Everyday words get them to the right action faster than precise
+      industry terms.
+    fix: Swap the term for everyday words, keeping the meaning exact.
+    examples:
+      bad: "Your remittance will be credited on the value date."
+      good: "The money will reach the account on {date}."

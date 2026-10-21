@@ -1,0 +1,287 @@
+# Tembusu Bank — copy test set (DRAFT v0.2)
+#
+# Every name, number and address here is invented. Never add real data.
+#
+# Each sample lists the rule IDs a correct checker should flag. Empty `expect`
+# means the copy is clean, which tests for false alarms.
+# `notes` explains what a sample tests: near-misses, known gaps, and bugs it
+# guards against (regression tests). Never delete a regression test.
+#
+# About 1/3 of samples are clean; most of those are near-misses. Every rule
+# and every context has at least one sample.
+#
+# AI expectations are judgment calls about what a careful reviewer would
+# flag. They only apply to copy the guard clears.
+#
+# Contexts: button | error | confirmation | promo-banner | rate-card
+#           | help-text | notification | email-snippet
+
+samples:
+
+  - id: T01
+    context: promo-banner
+    text: "Grow your money with guaranteed returns of 3.2% interest. Act now!"
+    expect: [BP-001, BP-002, DC-001]
+
+  - id: T02
+    context: error
+    text: "You entered the wrong OTP. Please contact us at +65 9123 4567."
+    expect: [PD-002]
+    notes: >
+      "Contact us" makes it sound like the bank's number, but 8- and 9-prefix
+      numbers are mobiles, which a bank wouldn't publish as a hotline. The
+      guard is right to flag it, and it doesn't judge from the wording around
+      a number. The copy never reaches the AI, so no AI findings are expected
+      (the blaming "You entered the wrong OTP" is tested in T28 instead).
+
+  - id: T03
+    context: confirmation
+    text: "Transfer of $500 to Jane Tan was successful on 05/11/2026."
+    expect: [FM-001, FM-002]
+    notes: Contains a customer name. No rule catches names yet — known gap.
+
+  - id: T04
+    context: email-snippet
+    text: "We sent a receipt to jane.tan@example.com. Questions? Email help@tembusu.example."
+    expect: [PD-003]
+    notes: The bank's own address must NOT be flagged.
+
+  - id: T05
+    context: rate-card
+    text: "Earn 2.5% p.a. interest on your Tembusu Growth Account. T&Cs apply."
+    expect: []
+    notes: >
+      Compliant rate copy: DC-001 must run here and find nothing missing.
+      Before rules v0.3 it passed only because DC-001 never ran (see T27).
+
+  - id: T06
+    context: button
+    text: "Log in"
+    expect: []
+
+  - id: T07
+    context: promo-banner
+    text: "Watch your savings grow without lifting a finger."
+    expect: [AI-001]
+
+  - id: T08
+    context: help-text
+    text: "To make sure that your transfer is processed on the same day, please submit your instructions before 3pm on a business day, otherwise it will be processed on the next business day instead."
+    expect: [PL-001]
+
+  - id: T09
+    context: notification
+    text: "Your card 4111 1111 1111 1111 has been blocked. Login to unblock it."
+    expect: [PD-004, TM-001]
+
+  - id: T10
+    context: notification
+    text: "Your account will be suspended. Click the link below to verify your account immediately."
+    expect: [BP-002]
+
+  - id: T11
+    context: promo-banner
+    text: "Zero-risk savings for everyone."
+    expect: [BP-001]
+    notes: >
+      Hyphenated variant. Only passes once phrase matching normalises
+      hyphens to spaces (Day 2 engine work).
+
+  - id: T12
+    context: promo-banner
+    text: "With Tembusu, you can’t lose."
+    expect: [BP-001]
+    notes: >
+      Uses a curly apostrophe (’), as copy pasted from Figma or Word usually
+      does. Only passes once phrase matching normalises quotes (Day 2).
+
+  - id: T13
+    context: rate-card
+    text: "Risk rating: 0 (lowest)"
+    expect: []
+    notes: Near-miss for the "0 risk" phrase. Must NOT flag BP-001.
+
+  # ----- T14–T37 drafted by Claude (21 Oct) -----
+
+  - id: T14
+    context: error
+    text: "We couldn't verify NRIC S1234567D. Check the number and try again."
+    expect: [PD-001]
+    notes: Invented NRIC. First sample for PD-001.
+
+  - id: T15
+    context: confirmation
+    text: "S$250 has been sent to account 123-456789-001."
+    expect: [PD-005]
+    notes: Invented account number in Tembusu's 3-6-3 format.
+
+  - id: T16
+    context: confirmation
+    text: "Transfer complete. Reference no. 20261105-48213. Transaction ID TX-4829-1033."
+    expect: []
+    notes: >
+      Near-miss for the guard. A date-style reference number and a
+      transaction ID must not be mistaken for an account, card or phone
+      number, or for an ambiguous date.
+
+  - id: T17
+    context: help-text
+    text: "Need help? Call our 24-hour hotline at 1800 123 4567 or email help@tembusu.example."
+    expect: []
+    notes: Near-miss. The public hotline and the bank's own address are allowed.
+
+  - id: T18
+    context: rate-card
+    text: "Foreign-currency fixed deposits start from US$200. T&Cs apply."
+    expect: []
+    notes: Near-miss for FM-001. US$ is a prefixed amount and is fine.
+
+  - id: T19
+    context: promo-banner
+    text: "Apply for the Tembusu rewards card in the app."
+    expect: [TM-002]
+    notes: Wrong casing. The official name is "Tembusu Rewards Card".
+
+  - id: T20
+    context: promo-banner
+    text: "Start investing in the Tembusu Global Equity Fund from S$100 a month."
+    expect: [DC-002]
+
+  - id: T21
+    context: promo-banner
+    text: "Start investing in the Tembusu Global Equity Fund from S$100 a month. Investments involve risk. T&Cs apply."
+    expect: []
+    notes: >
+      Same offer as T20 with the risk warning. AI-001 should NOT fire:
+      it describes the product without promising an outcome.
+
+  - id: T22
+    context: button
+    text: "Invest now"
+    expect: []
+    notes: >
+      Near-miss for DC-002. Buttons are outside the rule's contexts, because
+      a button can't carry a warning.
+
+  - id: T23
+    context: promo-banner
+    text: "Fund your account instantly with PayNow."
+    expect: []
+    notes: >
+      Near-miss. "Fund" as a verb must not trigger DC-002, and PayNow is a
+      well-known name that AI-003 should NOT flag.
+
+  - id: T24
+    context: notification
+    text: "Your FAST transfer of S$80 is being processed."
+    expect: [AI-003]
+    notes: >
+      Most customers don't know FAST is an acronym (a Singapore transfer
+      system). Plain alternative: "Your instant transfer".
+
+  - id: T25
+    context: help-text
+    text: "Enter the OTP we sent by SMS to confirm your new PIN."
+    expect: []
+    notes: AI-003 should NOT fire. OTP, SMS and PIN are on its well-known list.
+
+  - id: T26
+    context: email-snippet
+    text: "On maturity, your fixed deposit will be renewed for the same tenor."
+    expect: [AI-004]
+    notes: >
+      "Maturity" and "tenor" are banking jargon. Plain version: "When your
+      fixed deposit ends, we'll renew it for the same length of time."
+
+  - id: T27
+    context: rate-card
+    text: "Tembusu Everyday Account: 0.05% p.a. interest."
+    expect: [DC-001]
+    notes: >
+      Has "p.a." but no pointer to the terms, so DC-001 should fire.
+      AI-004 should NOT flag "p.a." or the product name.
+      Regression test: this sample exposed a DC-001 bug in rules v0.2. The
+      full stops in "p.a." stopped the `when` pattern reaching "interest",
+      so the rule never ran on any rate written with "p.a.". Fixed in v0.3
+      (see decisions.md D16). Keep this sample.
+
+  - id: T28
+    context: error
+    text: "Error: you entered an invalid amount."
+    expect: [AI-002]
+    notes: Blames the customer and doesn't say what to do next.
+
+  - id: T29
+    context: error
+    text: "That's over your daily limit of S$5,000. Try a smaller amount, or change your limit in Settings."
+    expect: []
+    notes: AI-002 should NOT fire. Neutral, and says what to do next.
+
+  - id: T30
+    context: notification
+    text: "Your statement for 31/10/2026 has been sent by e-mail."
+    expect: [FM-002, TM-001]
+    notes: >
+      31/10 can only be read one way, but the rule asks for the month as a
+      word everywhere, for consistency.
+
+  - id: T31
+    context: help-text
+    text: "Lost your card? Call us 24 hours a day at {hotline}."
+    expect: []
+    notes: >
+      The recommended way to show the bank's number: a placeholder filled in
+      from one central setting, so a number change happens in one place.
+
+  - id: T32
+    context: help-text
+    text: "For overseas enquiries, call +65 6123 4567."
+    expect: [PD-002]
+    notes: >
+      Invented landline. Even if this were the bank's real overseas line, the
+      guard can't know that from the pattern. Fix: use {hotline}, or add the
+      bank's published number to PD-002's `allow` list.
+
+  # ----- T33–T37: regression tests from the final review (rules v0.4) -----
+
+  - id: T33
+    context: rate-card
+    text: "Interest: 1.8% p.a."
+    expect: [DC-001]
+    notes: >
+      Regression test. DC-001 used to be case-sensitive, so "Interest" with
+      a capital I didn't trigger the rule at all. Missing "T&Cs apply", so
+      it should fire.
+
+  - id: T34
+    context: promo-banner
+    text: "Earn 1.8% p.a. interest on your Tembusu Everyday Account. T&Cs Apply."
+    expect: []
+    notes: >
+      Regression test. "T&Cs Apply" with a capital A is common in banners
+      and must count. DC-001 used to flag this compliant copy.
+
+  - id: T35
+    context: promo-banner
+    text: "Enjoy 10% off at our corporate partners."
+    expect: []
+    notes: >
+      Regression test. "rate" inside "corporate" used to trigger DC-001 and
+      ask for "p.a." on a discount.
+
+  - id: T36
+    context: notification
+    text: "We've sent a code to +6591234567."
+    expect: [PD-002]
+    notes: >
+      Regression test. A +65 number written without a space used to slip
+      past PD-002.
+
+  - id: T37
+    context: email-snippet
+    text: "Your relationship manager, reachable at jane.tan@tembusu.example, will call you."
+    expect: [PD-003]
+    notes: >
+      Regression test. A staff address at the bank's own domain is personal
+      data. PD-003 used to allow every @tembusu.example address; now only
+      the published ones (help@tembusu.example) are allowed.
