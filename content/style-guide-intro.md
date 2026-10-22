@@ -19,7 +19,7 @@ Real-looking details get copied into screenshots, design files and tools. Use pl
 
 The copy pre-check tool checks copy before it goes to compliance review, in three steps:
 
-1. **Personal data.** If the copy contains anything that looks like personal data, it stops here until that's replaced with a placeholder. A reviewer can override a wrong match, with a written reason.
+1. **Personal data.** If the copy contains anything that looks like personal data, it isn't sent to the AI until that's replaced with a placeholder. The rule checks in step 2 still run. A reviewer can override a wrong match, with a written reason.
 2. **Rules checked by code.** Fixed rules such as banned phrases, currency format and required disclosures. The same copy always gets the same result.
 3. **Rules checked by AI.** Judgment calls, such as implied promises or jargon. These are always suggestions for a person to accept or dismiss.
 
@@ -28,6 +28,8 @@ Every finding has a severity:
 - **Blocker:** must be fixed before compliance review.
 - **Needs fix:** fix before review unless there's a good reason not to.
 - **Suggestion:** the reviewer decides.
+
+Severity and the personal-data check are separate. A blocker means the copy must be fixed before compliance review, but it doesn't stop the other checks, so you see every issue in one pass. Only personal data stops the AI checks, because once data reaches an outside model it can't be taken back.
 
 The tool flags problems. It never rewrites or approves copy.
 
