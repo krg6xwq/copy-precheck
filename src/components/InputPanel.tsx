@@ -53,23 +53,55 @@ export function InputPanel(props: Props) {
           if (text.trim()) props.onSubmit();
         }}
       >
-        <div className={styles.field}>
-          <label htmlFor={ids.sample} className={styles.label}>
-            Try a sample <span className={styles.optional}>(optional)</span>
-          </label>
-          <select
-            id={ids.sample}
-            className={styles.select}
-            value={sampleId}
-            onChange={(event) => loadSample(event.target.value)}
-          >
-            <option value="">Choose from the test set…</option>
-            {samples.map((sample) => (
-              <option key={sample.id} value={sample.id}>
-                {sample.id} · {CONTEXT_LABELS[sample.context]} · {truncate(sample.text, 44)}
-              </option>
-            ))}
-          </select>
+        <div className={styles.fieldGroup}>
+          <div className={styles.field}>
+            <label htmlFor={ids.copy} className={styles.label}>
+              Copy
+            </label>
+            <textarea
+              id={ids.copy}
+              className={styles.textarea}
+              rows={6}
+              maxLength={maxLength}
+              value={text}
+              aria-describedby={ids.count}
+              placeholder="e.g. Earn 2.5% p.a. interest on your Tembusu Growth Account. T&Cs apply."
+              onChange={(event) => {
+                setSampleId("");
+                props.onTextChange(event.target.value);
+              }}
+            />
+            <p id={ids.count} className={`${styles.hint} ${remaining < 100 ? styles.hintWarn : ""}`}>
+              {text.length.toLocaleString("en-SG")} / {maxLength.toLocaleString("en-SG")} characters
+            </p>
+          </div>
+
+          <div className={styles.field}>
+            <label htmlFor={ids.sample} className={styles.label}>
+              Try a sample <span className={styles.optional}>(optional)</span>
+            </label>
+            <select
+              id={ids.sample}
+              className={styles.select}
+              value={sampleId}
+              onChange={(event) => loadSample(event.target.value)}
+            >
+              <option value="">Choose from the test set…</option>
+              {Object.entries(CONTEXT_LABELS).map(([value, label]) => {
+                const group = samples.filter((sample) => sample.context === value);
+                if (!group.length) return null;
+                return (
+                  <optgroup key={value} label={label}>
+                    {group.map((sample) => (
+                      <option key={sample.id} value={sample.id}>
+                        {truncate(sample.text, 60)}
+                      </option>
+                    ))}
+                  </optgroup>
+                );
+              })}
+            </select>
+          </div>
         </div>
 
         <div className={styles.field}>
@@ -89,28 +121,6 @@ export function InputPanel(props: Props) {
               </option>
             ))}
           </select>
-        </div>
-
-        <div className={styles.field}>
-          <label htmlFor={ids.copy} className={styles.label}>
-            Copy
-          </label>
-          <textarea
-            id={ids.copy}
-            className={styles.textarea}
-            rows={6}
-            maxLength={maxLength}
-            value={text}
-            aria-describedby={ids.count}
-            placeholder="e.g. Earn 2.5% p.a. interest on your Tembusu Growth Account. T&Cs apply."
-            onChange={(event) => {
-              setSampleId("");
-              props.onTextChange(event.target.value);
-            }}
-          />
-          <p id={ids.count} className={`${styles.hint} ${remaining < 100 ? styles.hintWarn : ""}`}>
-            {text.length.toLocaleString("en-SG")} / {maxLength.toLocaleString("en-SG")} characters
-          </p>
         </div>
 
         <div className={styles.notice} role="note">
