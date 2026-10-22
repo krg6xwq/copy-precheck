@@ -56,7 +56,11 @@ function readCopy(positionals: string[], file: string | undefined): string {
 function formatFinding(finding: Finding): string {
   const lines = [`  ${finding.ruleId}  ${finding.ruleName}${finding.layer === "guard" ? "  [personal data]" : ""}`];
   if (finding.match) lines.push(`      "${finding.match.text}"`);
-  if (finding.detail) lines.push(`      ${finding.detail}`);
+  if (finding.detail) lines.push(`      ${finding.layer === "ai" ? "AI: " : ""}${finding.detail}`);
+  if (finding.suggestion) lines.push(`      Suggested wording: ${finding.suggestion}`);
+  for (const agreement of finding.aiAgreement ?? []) {
+    lines.push(`      ${agreement.ruleId} (AI) agrees: ${agreement.explanation}`);
+  }
   if (finding.override) lines.push(`      Overridden: ${finding.override.reason}`);
   lines.push(`      Why: ${finding.why}`, `      Fix: ${finding.fix}`);
   return lines.join("\n");
@@ -76,15 +80,18 @@ function formatReport(report: Report, verbose: boolean): string {
   if (overridden.length) out.push(`OVERRIDDEN (${overridden.length})`, ...overridden.map(formatFinding), "");
 
   out.push(
-    report.aiAllowed
-      ? "AI checks: not built yet (Day 3)."
-      : "AI checks: not run. Replace the personal data with placeholders, or override a finding you've checked.",
+    {
+      "not-run": "AI checks: not run (no AI model connected to this command yet).",
+      blocked: "AI checks: not run. Replace the personal data with placeholders, or override a finding you've checked.",
+      done: `AI checks: done (${report.ai.model}).`,
+      unavailable: `AI checks: unavailable. ${report.ai.reason}. The code findings above still apply.`,
+    }[report.ai.status],
   );
 
   const count = (status: string) => report.runs.filter((run) => run.status === status).length;
   out.push(
     `Rules: ${count("flagged") + count("passed")} checked, ${count("not-applicable")} not applicable, ` +
-      `${count("ai-pending") + count("ai-blocked")} AI. Rules file v${report.rulesVersion}.`,
+      `${report.runs.filter((run) => run.layer === "ai").length} AI. Rules file v${report.rulesVersion}.`,
   );
 
   if (verbose) {

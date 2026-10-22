@@ -1,6 +1,7 @@
-// Runs the rules in order: personal-data guard, then code rules. AI rules are
-// listed but not run yet (Day 3). Pure function: no file system, no network,
-// so the CLI, the tests and the web page all use exactly the same logic.
+// Runs the code layers in order: personal-data guard, then code rules. Pure
+// function: no file system, no network, so the CLI, the tests and the web
+// page all use exactly the same logic. The AI layer (ai/run.ts) runs on the
+// report this returns, and only when `aiAllowed` is true.
 
 import { runCheck } from "./checks";
 import type { Category, Context, Layer, Rule, RulesFile, Severity } from "./schema";
@@ -19,6 +20,13 @@ export interface Finding {
   fix: string;
   /** Set when a reviewer released a guard finding (guard rules only). */
   override?: { reason: string };
+  /** AI findings: the model's suggested wording, for a person to consider. */
+  suggestion?: string;
+  /**
+   * Code findings only: AI rules that flagged the same words and were merged
+   * into this finding instead of being shown twice (decisions.md D19).
+   */
+  aiAgreement?: { ruleId: string; explanation: string }[];
 }
 
 /**
@@ -26,7 +34,16 @@ export interface Finding {
  * "not-applicable" means it didn't run. Keeping them apart stops a test from
  * passing by accident (decisions.md D16).
  */
-export type RuleStatus = "flagged" | "passed" | "not-applicable" | "ai-pending" | "ai-blocked";
+export type RuleStatus =
+  | "flagged"
+  | "passed"
+  | "not-applicable"
+  /** AI rule, not run: no model was used for this check. */
+  | "ai-pending"
+  /** AI rule, not run: open personal-data findings. */
+  | "ai-blocked"
+  /** AI rule, not run: the model failed or gave an unusable answer. */
+  | "ai-unavailable";
 
 export interface RuleRun {
   ruleId: string;
@@ -54,6 +71,28 @@ export interface CheckOptions {
   overrides?: Override[];
 }
 
+/** An AI finding that was thrown away, and why. Kept for the evaluation. */
+export interface RejectedAiFinding {
+  ruleId: string;
+  quote: string;
+  reason: string;
+}
+
+export interface AiSummary {
+  /**
+   * not-run: no model was used. blocked: open personal-data findings.
+   * done: the model answered. unavailable: it failed; code findings stand.
+   */
+  status: "not-run" | "blocked" | "done" | "unavailable";
+  model?: string;
+  /** Why the AI checks didn't run or failed, in plain words. */
+  reason?: string;
+  /** AI findings dropped because they failed validation. */
+  rejected: RejectedAiFinding[];
+  /** AI findings folded into a code finding on the same words. */
+  merged: number;
+}
+
 export interface Report {
   text: string;
   context?: Context;
@@ -67,6 +106,7 @@ export interface Report {
   };
   /** Whether the copy may be sent to the AI layer. */
   aiAllowed: boolean;
+  ai: AiSummary;
   warnings: string[];
 }
 
@@ -79,7 +119,16 @@ export class OverrideError extends Error {
 
 const SEVERITY_ORDER: Record<Severity, number> = { blocker: 0, "needs-fix": 1, suggestion: 2 };
 
-const clean = (text: string) => text.replace(/\s+/g, " ").trim();
+export const clean = (text: string) => text.replace(/\s+/g, " ").trim();
+
+/** Blockers first, then needs-fix, then suggestions; within each, by position. */
+export function sortFindings(findings: Finding[]): Finding[] {
+  return [...findings].sort(
+    (a, b) =>
+      SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity] ||
+      (a.match?.start ?? -1) - (b.match?.start ?? -1),
+  );
+}
 
 /** Compares matched text, ignoring differences in spacing. */
 const sameText = (a: string, b: string) => clean(a) === clean(b);
@@ -155,7 +204,7 @@ export function checkCopy(text: string, rulesFile: RulesFile, options: CheckOpti
   for (const rule of rulesFile.rules.filter((r) => r.layer === "ai")) {
     runs.push(
       aiAllowed
-        ? { ruleId: rule.id, layer: "ai", status: "ai-pending", reason: "AI layer not built yet" }
+        ? { ruleId: rule.id, layer: "ai", status: "ai-pending", reason: "No AI model used for this check" }
         : { ruleId: rule.id, layer: "ai", status: "ai-blocked", reason: "Personal data must be replaced first" },
     );
   }
@@ -164,20 +213,17 @@ export function checkCopy(text: string, rulesFile: RulesFile, options: CheckOpti
     .filter((o) => !guardFindings.some((f) => f.ruleId === o.ruleId && f.match && sameText(f.match.text, o.match)))
     .map((o) => `Override for ${o.ruleId} "${o.match}" was not used: no finding matches that text`);
 
-  findings.sort(
-    (a, b) =>
-      SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity] ||
-      (a.match?.start ?? -1) - (b.match?.start ?? -1),
-  );
-
   return {
     text,
     context,
     rulesVersion: rulesFile.version,
-    findings,
+    findings: sortFindings(findings),
     runs,
     guard: { open, overridden: guardFindings.length - open },
     aiAllowed,
+    ai: aiAllowed
+      ? { status: "not-run", reason: "No AI model used for this check", rejected: [], merged: 0 }
+      : { status: "blocked", reason: "Personal data must be replaced first", rejected: [], merged: 0 },
     warnings,
   };
 }
