@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import type { Finding, Report } from "@/engine";
 import {
   CONTEXT_LABELS,
@@ -70,6 +70,9 @@ function summaryText(open: Finding[]): { text: string; tone: "blocker" | "needs-
 
 function Export({ report, decisions, checkedAt }: { report: Report; decisions: Record<string, Decision>; checkedAt: Date }) {
   const [copied, setCopied] = useState<"idle" | "done" | "failed">("idle");
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => () => clearTimeout(timer.current), []);
 
   function download() {
     const blob = new Blob([reportToMarkdown(report, decisions, checkedAt)], { type: "text/markdown" });
@@ -88,17 +91,28 @@ function Export({ report, decisions, checkedAt }: { report: Report; decisions: R
     } catch {
       setCopied("failed");
     }
-    setTimeout(() => setCopied("idle"), 2500);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => setCopied("idle"), 2500);
   }
 
   return (
     <div className={styles.exportActions}>
       <button type="button" className={styles.secondaryButton} onClick={copy}>
-        {copied === "done" ? "Copied" : copied === "failed" ? "Couldn't copy" : "Copy as Markdown"}
+        Copy as Markdown
       </button>
       <button type="button" className={styles.secondaryButton} onClick={download}>
         Download report
       </button>
+      {/* Always rendered so screen readers announce the message when it appears. */}
+      <div role="status" aria-live="polite" className={styles.toastRegion}>
+        {copied !== "idle" && (
+          <p className={`${styles.toast} ${copied === "failed" ? styles.toastFailed : ""}`}>
+            {copied === "done"
+              ? "Report copied as Markdown."
+              : "Couldn't copy the report. Try Download report instead."}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
