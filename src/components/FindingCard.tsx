@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import type { Finding } from "@/engine";
-import { SOURCE_LABELS, type Decision } from "@/lib/labels";
+import { findingDomId, SOURCE_LABELS, type Decision } from "@/lib/labels";
 import styles from "./checker.module.css";
 
 interface Props {
@@ -68,6 +68,8 @@ export function FindingCard({ finding, decision, onDecision, onOverride, onUndoO
 
   return (
     <li
+      id={findingDomId(finding)}
+      tabIndex={-1}
       className={classes}
       onMouseEnter={() => onActivate(true)}
       onMouseLeave={() => onActivate(false)}

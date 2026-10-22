@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { flushSync } from "react-dom";
 import type { Finding, Report } from "@/engine";
 import {
   CONTEXT_LABELS,
+  findingDomId,
   findingKey,
   SEVERITIES,
   SEVERITY_HINTS,
@@ -160,6 +162,17 @@ export function ReportPanel(props: Props) {
   const toggleGroup = (id: string) =>
     setCollapsed((current) => (current.includes(id) ? current.filter((group) => group !== id) : [...current, id]));
 
+  function jumpToFinding(finding: Finding) {
+    // Open the finding's group first, so its card is on screen to scroll to.
+    flushSync(() => setCollapsed((current) => current.filter((group) => group !== finding.severity)));
+    const card = document.getElementById(findingDomId(finding));
+    if (!card) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    card.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+    // Focusing the card marks it as active, and lets keyboard users carry on from there.
+    card.focus({ preventScroll: true });
+  }
+
   if (!result) {
     return (
       <section className={`${styles.card} ${styles.reportCard}`} aria-label="Results">
@@ -227,7 +240,7 @@ export function ReportPanel(props: Props) {
 
       <AiStatus report={report} />
 
-      <HighlightedCopy text={report.text} findings={highlighted} activeKey={activeKey} />
+      <HighlightedCopy text={report.text} findings={highlighted} activeKey={activeKey} onSelect={jumpToFinding} />
 
       {SEVERITIES.map((severity) => {
         const group = open.filter((finding) => finding.severity === severity);

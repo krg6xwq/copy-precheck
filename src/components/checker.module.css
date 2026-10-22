@@ -526,6 +526,10 @@
   border-radius: 2px;
   padding: 1px 0;
   border-bottom: 2px solid;
+  cursor: pointer;
+  /* Each line of a highlight that wraps gets its own rounded edges and underline. */
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
 
 .mark-blocker {
@@ -542,6 +546,15 @@
   background: var(--color-suggestion-bg);
   border-bottom-color: var(--color-suggestion);
   border-bottom-style: dashed;
+}
+
+.mark:hover {
+  filter: brightness(0.95);
+}
+
+/* Covers other findings (e.g. a long sentence), so it's underlined without a fill. */
+.markWide {
+  background: none;
 }
 
 .markActive {

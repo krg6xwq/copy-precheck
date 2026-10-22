@@ -38,4 +38,7 @@ export const SEVERITIES: Severity[] = ["blocker", "needs-fix", "suggestion"];
 export const findingKey = (finding: Finding) =>
   `${finding.ruleId}:${finding.match?.start ?? "-"}:${finding.match?.end ?? "-"}`;
 
+/** The id of a finding's card, so the highlighted copy can link to it. */
+export const findingDomId = (finding: Finding) => `finding-${findingKey(finding)}`;
+
 export type Decision = "accepted" | "dismissed";

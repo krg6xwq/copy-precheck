@@ -22,6 +22,18 @@ describe("segmentCopy", () => {
     expect(flagged.find((segment) => segment.text === "Act now")?.severity).toBe("needs-fix");
   });
 
+  it("draws a long sentence as underline only, so flagged words inside it stand out", () => {
+    const text =
+      "To make sure your first monthly contribution is processed on time, please login to the Tembusu app and set up a GIRO arrangement before 05/11/2026, otherwise your application will be cancelled.";
+    const report = checkCopy(text, rules);
+    const segments = segmentCopy(text, report.findings);
+    const login = segments.find((segment) => segment.text === "login to")!;
+    expect(login.findings.map((finding) => finding.ruleId)).toEqual(["PL-001", "TM-001"]);
+    expect(login.wide).toBeUndefined();
+    expect(segments[0].findings.map((finding) => finding.ruleId)).toEqual(["PL-001"]);
+    expect(segments[0].wide).toBe(true);
+  });
+
   it("handles copy with nothing flagged", () => {
     expect(segmentCopy("Log in", [])).toEqual([{ text: "Log in", start: 0, findings: [] }]);
   });
