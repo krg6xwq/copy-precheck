@@ -3,10 +3,11 @@
 // Checks one piece of copy and prints a report. Exit code 1 means there is
 // at least one open blocker, so the command can also be used in scripts.
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
-import { checkCopy, CONTEXTS, OverrideError, type Context, type Finding, type Override, type Report } from "../engine";
+import { checkCopyWithAi, CONTEXTS, OverrideError, type Context, type Finding, type Override, type Report } from "../engine";
 import { ContentError, loadRules } from "../engine/load";
+import { claudeFromEnv } from "../models/claude";
 
 const HELP = `Check UI copy against the Tembusu Bank rules.
 
@@ -22,6 +23,8 @@ Options:
                              matches stay blocked. Repeat for more, e.g.
                              --override "PD-002|+65 6123 4567|Published overseas line"
   -f, --file <path>          Read the copy from a file
+      --ai                   Also run the AI checks (needs ANTHROPIC_API_KEY,
+                             e.g. in .env.local; each check costs a little)
   -v, --verbose              Also list every rule and whether it ran
       --json                 Print the full report as JSON
   -h, --help                 Show this help
@@ -81,7 +84,7 @@ function formatReport(report: Report, verbose: boolean): string {
 
   out.push(
     {
-      "not-run": "AI checks: not run (no AI model connected to this command yet).",
+      "not-run": "AI checks: not run. Add --ai to run them.",
       blocked: "AI checks: not run. Replace the personal data with placeholders, or override a finding you've checked.",
       done: `AI checks: done (${report.ai.model}).`,
       unavailable: `AI checks: unavailable. ${report.ai.reason}. The code findings above still apply.`,
@@ -104,7 +107,7 @@ function formatReport(report: Report, verbose: boolean): string {
   return out.join("\n");
 }
 
-function main(): void {
+async function main(): Promise<void> {
   let args;
   try {
     args = parseArgs({
@@ -114,6 +117,7 @@ function main(): void {
         override: { type: "string", short: "o", multiple: true },
         file: { type: "string", short: "f" },
         verbose: { type: "boolean", short: "v" },
+        ai: { type: "boolean" },
         json: { type: "boolean" },
         help: { type: "boolean", short: "h" },
       },
@@ -133,9 +137,19 @@ function main(): void {
   const text = readCopy(positionals, values.file);
   const overrides = parseOverrides(values.override ?? []);
 
+  // The API key lives in .env.local, which git ignores. Never commit it.
+  if (values.ai && existsSync(".env.local")) process.loadEnvFile(".env.local");
+  let model;
+  try {
+    model = values.ai ? claudeFromEnv() : undefined;
+  } catch (error) {
+    fail((error as Error).message);
+  }
+  if (values.ai && !model) fail("--ai needs ANTHROPIC_API_KEY. Put it in .env.local (see .env.example).");
+
   let report: Report;
   try {
-    report = checkCopy(text, loadRules(), { context, overrides });
+    report = await checkCopyWithAi(text, loadRules(), model, { context, overrides });
   } catch (error) {
     if (error instanceof ContentError || error instanceof OverrideError) fail(error.message);
     throw error;
@@ -146,4 +160,4 @@ function main(): void {
   process.exitCode = openBlockers ? 1 : 0;
 }
 
-main();
+void main();

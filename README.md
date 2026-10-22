@@ -10,7 +10,7 @@ Copy is checked in three layers, in this order:
 
 1. **Personal-data guard (code).** NRIC/FIN, phone numbers, email addresses, card numbers and account numbers. Any hit stops the copy from being sent to the AI until it's replaced with a placeholder. A reviewer can override a wrong match, with a written reason.
 2. **Rule checks (code).** Banned phrases, scam-like urgency, terminology, product names, S$ amounts, unambiguous dates, required disclosures and sentence length. The same copy always gets the same result.
-3. **AI judgment.** Only for what code can't catch: implied promises, alarming error messages, unexplained acronyms and jargon. Always shown as suggestions. *(Coming next.)*
+3. **AI judgment (Claude).** Only for what code can't catch: implied promises, alarming error messages, unexplained acronyms and jargon. Always shown as suggestions. Every AI finding must quote words that are really in the copy, or it's dropped. If the AI repeats a code finding, it's merged into it. If the AI is unavailable, the code findings still stand.
 
 All rules live in one file, [`content/rules.yaml`](content/rules.yaml). The checker reads it, and the [style guide](content/style-guide.md) is generated from it, so the two can never disagree.
 
@@ -23,6 +23,14 @@ npm install
 npm test                 # run the test set and all other tests
 npm run check -- "Earn 2.5% interest. Act now!" --context promo-banner
 ```
+
+To run the AI checks too, copy `.env.example` to `.env.local`, add an Anthropic API key (create a project-only key with a spend limit), and add `--ai`:
+
+```bash
+npm run check -- "Watch your savings grow without lifting a finger." --context promo-banner --ai
+```
+
+`.env.local` is ignored by git. Never commit a real key.
 
 ## Commands
 
@@ -38,6 +46,7 @@ npm run check -- "Earn 2.5% interest. Act now!" --context promo-banner
 
 - `--context`, `-c`: where the copy appears (`button`, `error`, `confirmation`, `promo-banner`, `rate-card`, `help-text`, `notification`, `email-snippet`). Some rules only apply in certain places; without a context, every rule runs.
 - `--override`, `-o`: release one personal-data match you've checked isn't personal data, e.g. `--override "PD-002|+65 6123 4567|Published overseas line"`. Name the exact text: any other match from the same rule stays blocked. Repeat the option for more than one.
+- `--ai`: also run the AI checks with Claude. Needs `ANTHROPIC_API_KEY`. Each check costs well under a cent.
 - `--verbose`, `-v`: also list every rule and whether it ran.
 - `--json`: print the full report as JSON.
 
@@ -53,7 +62,8 @@ If the rules file has a mistake, such as a misspelled severity, a missing field 
 
 ```
 content/          Rules, test set and style guide (edit these, not code, to change rules)
-src/engine/       The checker: loading, validation and the three layers
+src/engine/       The checker: loading, validation and the three layers (AI layer in src/engine/ai/)
+src/models/       Connection to Claude (swap this to use a different model)
 src/cli/          The `npm run check` command
 src/guide/        Generates the style guide from the rules
 src/app/          Web page (Next.js)
