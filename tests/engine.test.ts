@@ -48,24 +48,47 @@ describe("guard", () => {
     expect(report.runs.filter((run) => run.layer === "ai").every((run) => run.status === "ai-blocked")).toBe(true);
   });
 
+  const hotline = { ruleId: "PD-002", match: "+65 6123 4567", reason: "Published overseas line" };
+
   it("lets a reviewer override a guard finding with a reason", () => {
-    const report = checkCopy(withPhone, rules, { overrides: { "PD-002": "Published overseas line" } });
+    const report = checkCopy(withPhone, rules, { overrides: [hotline] });
     expect(report.aiAllowed).toBe(true);
     expect(report.guard).toEqual({ open: 0, overridden: 1 });
     expect(report.findings[0].override).toEqual({ reason: "Published overseas line" });
     expect(flaggedRuleIds(report)).toEqual([]);
   });
 
+  it("releases only the text named, not every match from the rule (decisions.md D20)", () => {
+    const report = checkCopy("Overseas? Call +65 6123 4567. Or text Jane on 9123 4567.", rules, {
+      overrides: [hotline],
+    });
+    expect(report.aiAllowed).toBe(false);
+    expect(report.guard).toEqual({ open: 1, overridden: 1 });
+    const open = report.findings.filter((finding) => finding.layer === "guard" && !finding.override);
+    expect(open.map((finding) => finding.match?.text)).toEqual(["9123 4567"]);
+  });
+
+  it("matches the named text even if its spacing differs", () => {
+    const report = checkCopy(withPhone, rules, { overrides: [{ ...hotline, match: "+65  6123 4567" }] });
+    expect(report.aiAllowed).toBe(true);
+  });
+
   it("refuses an override without a reason", () => {
-    expect(() => checkCopy(withPhone, rules, { overrides: { "PD-002": "  " } })).toThrow(OverrideError);
+    expect(() => checkCopy(withPhone, rules, { overrides: [{ ...hotline, reason: "  " }] })).toThrow(OverrideError);
+  });
+
+  it("refuses an override that doesn't name the text it releases", () => {
+    expect(() => checkCopy(withPhone, rules, { overrides: [{ ...hotline, match: "" }] })).toThrow(OverrideError);
   });
 
   it("refuses to override a rule outside the guard", () => {
-    expect(() => checkCopy("Act now!", rules, { overrides: { "BP-002": "It's fine" } })).toThrow(OverrideError);
+    const override = { ruleId: "BP-002", match: "Act now", reason: "It's fine" };
+    expect(() => checkCopy("Act now!", rules, { overrides: [override] })).toThrow(OverrideError);
   });
 
-  it("warns about an override that wasn't needed", () => {
-    const report = checkCopy("Log in", rules, { overrides: { "PD-002": "Just in case" } });
+  it("warns about an override that didn't match anything", () => {
+    const report = checkCopy(withPhone, rules, { overrides: [{ ...hotline, match: "+65 6999 9999" }] });
+    expect(report.aiAllowed).toBe(false);
     expect(report.warnings).toHaveLength(1);
   });
 

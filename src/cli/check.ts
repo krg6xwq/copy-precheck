@@ -5,7 +5,7 @@
 
 import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
-import { checkCopy, CONTEXTS, OverrideError, type Context, type Finding, type Report } from "../engine";
+import { checkCopy, CONTEXTS, OverrideError, type Context, type Finding, type Override, type Report } from "../engine";
 import { ContentError, loadRules } from "../engine/load";
 
 const HELP = `Check UI copy against the Tembusu Bank rules.
@@ -16,8 +16,11 @@ Usage:
 
 Options:
   -c, --context <name>       Where the copy appears: ${CONTEXTS.join(", ")}
-  -o, --override <ID=reason> Release a personal-data finding you've checked,
-                             e.g. --override "PD-002=Published overseas line"
+  -o, --override <ID|text|reason>
+                             Release one personal-data match you've checked
+                             isn't personal data. Name the exact text; other
+                             matches stay blocked. Repeat for more, e.g.
+                             --override "PD-002|+65 6123 4567|Published overseas line"
   -f, --file <path>          Read the copy from a file
   -v, --verbose              Also list every rule and whether it ran
       --json                 Print the full report as JSON
@@ -32,14 +35,15 @@ function fail(message: string): never {
   process.exit(2);
 }
 
-function parseOverrides(values: string[]): Record<string, string> {
-  const overrides: Record<string, string> = {};
-  for (const value of values) {
-    const split = value.indexOf("=");
-    if (split < 1) fail(`Overrides look like ID=reason, e.g. "PD-002=Published overseas line". Got: ${value}`);
-    overrides[value.slice(0, split).trim().toUpperCase()] = value.slice(split + 1);
-  }
-  return overrides;
+function parseOverrides(values: string[]): Override[] {
+  return values.map((value) => {
+    const parts = value.split("|");
+    if (parts.length !== 3 || parts.some((part) => !part.trim())) {
+      fail(`Overrides look like ID|text|reason, e.g. "PD-002|+65 6123 4567|Published overseas line". Got: ${value}`);
+    }
+    const [ruleId, match, reason] = parts.map((part) => part.trim());
+    return { ruleId: ruleId.toUpperCase(), match, reason };
+  });
 }
 
 function readCopy(positionals: string[], file: string | undefined): string {

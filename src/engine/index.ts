@@ -2,5 +2,5 @@
 // web page): nothing here reads files or calls the network.
 
 export { checkCopy, flaggedRuleIds, OverrideError } from "./engine";
-export type { CheckOptions, Finding, Report, RuleRun, RuleStatus } from "./engine";
+export type { CheckOptions, Finding, Override, Report, RuleRun, RuleStatus } from "./engine";
 export * from "./schema";

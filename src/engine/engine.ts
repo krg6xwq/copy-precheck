@@ -35,11 +35,23 @@ export interface RuleRun {
   reason?: string;
 }
 
+/**
+ * A reviewer's decision that one guard match isn't personal data. It names
+ * the exact text it releases, so other matches from the same rule stay
+ * blocked (decisions.md D20).
+ */
+export interface Override {
+  ruleId: string;
+  /** The matched text being released, e.g. "+65 6123 4567". */
+  match: string;
+  reason: string;
+}
+
 export interface CheckOptions {
   /** Where the copy appears. If missing, every rule runs. */
   context?: Context;
-  /** Guard rule ID → the reviewer's reason for releasing its findings. */
-  overrides?: Record<string, string>;
+  /** Guard matches a reviewer has checked and released. */
+  overrides?: Override[];
 }
 
 export interface Report {
@@ -69,19 +81,23 @@ const SEVERITY_ORDER: Record<Severity, number> = { blocker: 0, "needs-fix": 1, s
 
 const clean = (text: string) => text.replace(/\s+/g, " ").trim();
 
-function validateOverrides(rules: Rule[], overrides: Record<string, string>): void {
-  for (const [ruleId, reason] of Object.entries(overrides)) {
+/** Compares matched text, ignoring differences in spacing. */
+const sameText = (a: string, b: string) => clean(a) === clean(b);
+
+function validateOverrides(rules: Rule[], overrides: Override[]): void {
+  for (const { ruleId, match, reason } of overrides) {
     const rule = rules.find((r) => r.id === ruleId);
     if (!rule) throw new OverrideError(`Unknown rule ${ruleId}`);
     if (rule.layer !== "guard") {
       throw new OverrideError(`${ruleId} is not a guard rule. Only personal-data findings can be overridden.`);
     }
+    if (!match.trim()) throw new OverrideError(`An override of ${ruleId} must name the text it releases`);
     if (!reason.trim()) throw new OverrideError(`An override of ${ruleId} needs a reason`);
   }
 }
 
 export function checkCopy(text: string, rulesFile: RulesFile, options: CheckOptions = {}): Report {
-  const { context, overrides = {} } = options;
+  const { context, overrides = [] } = options;
   validateOverrides(rulesFile.rules, overrides);
 
   const findings: Finding[] = [];
@@ -111,7 +127,11 @@ export function checkCopy(text: string, rulesFile: RulesFile, options: CheckOpti
       if (seen.has(key)) continue;
       seen.add(key);
       added++;
-      const reason = rule.layer === "guard" ? overrides[rule.id] : undefined;
+      // Only the exact text a reviewer released is overridden.
+      const override =
+        rule.layer === "guard" && hit.span
+          ? overrides.find((o) => o.ruleId === rule.id && sameText(o.match, hit.span!.text))
+          : undefined;
       findings.push({
         ruleId: rule.id,
         ruleName: rule.name,
@@ -122,7 +142,7 @@ export function checkCopy(text: string, rulesFile: RulesFile, options: CheckOpti
         detail: hit.detail,
         why: clean(rule.why),
         fix: clean(rule.fix),
-        ...(reason ? { override: { reason: reason.trim() } } : {}),
+        ...(override ? { override: { reason: override.reason.trim() } } : {}),
       });
     }
     runs.push({ ruleId: rule.id, layer: rule.layer, status: added ? "flagged" : "passed" });
@@ -140,9 +160,9 @@ export function checkCopy(text: string, rulesFile: RulesFile, options: CheckOpti
     );
   }
 
-  const warnings = Object.keys(overrides)
-    .filter((ruleId) => !guardFindings.some((finding) => finding.ruleId === ruleId))
-    .map((ruleId) => `Override for ${ruleId} was not needed: it found nothing`);
+  const warnings = overrides
+    .filter((o) => !guardFindings.some((f) => f.ruleId === o.ruleId && f.match && sameText(f.match.text, o.match)))
+    .map((o) => `Override for ${o.ruleId} "${o.match}" was not used: no finding matches that text`);
 
   findings.sort(
     (a, b) =>

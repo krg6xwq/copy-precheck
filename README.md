@@ -37,7 +37,7 @@ npm run check -- "Earn 2.5% interest. Act now!" --context promo-banner
 `check` options:
 
 - `--context`, `-c`: where the copy appears (`button`, `error`, `confirmation`, `promo-banner`, `rate-card`, `help-text`, `notification`, `email-snippet`). Some rules only apply in certain places; without a context, every rule runs.
-- `--override`, `-o`: release a personal-data finding you've checked, e.g. `--override "PD-002=Published overseas line"`.
+- `--override`, `-o`: release one personal-data match you've checked isn't personal data, e.g. `--override "PD-002|+65 6123 4567|Published overseas line"`. Name the exact text: any other match from the same rule stays blocked. Repeat the option for more than one.
 - `--verbose`, `-v`: also list every rule and whether it ran.
 - `--json`: print the full report as JSON.
 
