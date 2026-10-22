@@ -578,6 +578,38 @@
   color: var(--color-suggestion-strong);
 }
 
+.groupToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+  margin-left: calc(-1 * var(--space-1));
+  padding: 0 var(--space-1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.groupToggle:hover {
+  background: var(--color-page);
+}
+
+.chevron {
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease-out;
+}
+
+.chevronOpen {
+  transform: rotate(45deg);
+}
+
 .groupHint {
   font-size: var(--text-xs);
   font-weight: 400;
@@ -590,6 +622,10 @@
   flex-direction: column;
   gap: var(--space-3);
   margin-top: var(--space-3);
+}
+
+.findings[hidden] {
+  display: none;
 }
 
 .finding {

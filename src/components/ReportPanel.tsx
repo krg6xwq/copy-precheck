@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import type { Finding, Report } from "@/engine";
 import {
   CONTEXT_LABELS,
@@ -117,9 +117,48 @@ function Export({ report, decisions, checkedAt }: { report: Report; decisions: R
   );
 }
 
+interface FindingGroupProps {
+  id: string;
+  title: string;
+  hint: string;
+  titleClassName?: string;
+  expanded: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}
+
+function FindingGroup({ id, title, hint, titleClassName = "", expanded, onToggle, children }: FindingGroupProps) {
+  return (
+    <section className={styles.group} aria-labelledby={`group-${id}`}>
+      <h3 className={`${styles.groupTitle} ${titleClassName}`}>
+        <button
+          type="button"
+          id={`group-${id}`}
+          className={styles.groupToggle}
+          aria-expanded={expanded}
+          aria-controls={`group-${id}-list`}
+          onClick={onToggle}
+        >
+          <span className={`${styles.chevron} ${expanded ? styles.chevronOpen : ""}`} aria-hidden="true" />
+          {title}
+        </button>
+        <span className={styles.groupHint}>{hint}</span>
+      </h3>
+      <ul id={`group-${id}-list`} className={styles.findings} hidden={!expanded}>
+        {children}
+      </ul>
+    </section>
+  );
+}
+
 export function ReportPanel(props: Props) {
   const { result, decisions, pending, stale, headingRef } = props;
   const [activeKey, setActiveKey] = useState<string | null>(null);
+  // Kept across checks, so a reviewer's layout survives re-checking and overrides.
+  const [collapsed, setCollapsed] = useState<string[]>([]);
+
+  const toggleGroup = (id: string) =>
+    setCollapsed((current) => (current.includes(id) ? current.filter((group) => group !== id) : [...current, id]));
 
   if (!result) {
     return (
@@ -194,24 +233,30 @@ export function ReportPanel(props: Props) {
         const group = open.filter((finding) => finding.severity === severity);
         if (group.length === 0) return null;
         return (
-          <section key={severity} className={styles.group} aria-labelledby={`group-${severity}`}>
-            <h3 id={`group-${severity}`} className={`${styles.groupTitle} ${styles[`groupTitle-${severity}`]}`}>
-              {SEVERITY_LABELS[severity].many} ({group.length})
-              <span className={styles.groupHint}>{SEVERITY_HINTS[severity]}</span>
-            </h3>
-            <ul className={styles.findings}>{group.map(card)}</ul>
-          </section>
+          <FindingGroup
+            key={severity}
+            id={severity}
+            title={`${SEVERITY_LABELS[severity].many} (${group.length})`}
+            hint={SEVERITY_HINTS[severity]}
+            titleClassName={styles[`groupTitle-${severity}`]}
+            expanded={!collapsed.includes(severity)}
+            onToggle={() => toggleGroup(severity)}
+          >
+            {group.map(card)}
+          </FindingGroup>
         );
       })}
 
       {overridden.length > 0 && (
-        <section className={styles.group} aria-labelledby="group-overridden">
-          <h3 id="group-overridden" className={styles.groupTitle}>
-            Overridden personal-data matches ({overridden.length})
-            <span className={styles.groupHint}>Released by a reviewer. Recorded in the report.</span>
-          </h3>
-          <ul className={styles.findings}>{overridden.map(card)}</ul>
-        </section>
+        <FindingGroup
+          id="overridden"
+          title={`Overridden personal-data matches (${overridden.length})`}
+          hint="Released by a reviewer. Recorded in the report."
+          expanded={!collapsed.includes("overridden")}
+          onToggle={() => toggleGroup("overridden")}
+        >
+          {overridden.map(card)}
+        </FindingGroup>
       )}
     </section>
   );
