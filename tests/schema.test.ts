@@ -60,6 +60,21 @@ describe("rules.yaml validation", () => {
     expect(errorsFor(withRule("TM-002", (r) => (r.id = "TM-001"))).join(" ")).toContain("Duplicate rule ID");
   });
 
+  it("rejects `extends` on a code rule (decisions.md D19)", () => {
+    expect(errorsFor(withRule("BP-002", (r) => (r.extends = ["BP-001"]))).join(" ")).toContain(
+      "Only AI rules can use `extends`",
+    );
+  });
+
+  it("rejects `extends` naming a rule that doesn't exist", () => {
+    expect(errorsFor(withRule("AI-001", (r) => (r.extends = ["BP-009"]))).join(" ")).toContain("unknown rule BP-009");
+  });
+
+  it("rejects `extends` naming a guard or AI rule", () => {
+    expect(errorsFor(withRule("AI-001", (r) => (r.extends = ["PD-002"]))).join(" ")).toContain("isn't a code rule");
+    expect(errorsFor(withRule("AI-001", (r) => (r.extends = ["AI-002"]))).join(" ")).toContain("isn't a code rule");
+  });
+
   it("rejects an unknown context", () => {
     expect(errorsFor(withRule("DC-002", (r) => (r.contexts = ["banner"]))).length).toBeGreaterThan(0);
   });

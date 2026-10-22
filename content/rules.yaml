@@ -1,4 +1,4 @@
-# Tembusu Bank — UI copy rules (DRAFT v0.4)
+# Tembusu Bank — UI copy rules (DRAFT v0.5)
 #
 # Tembusu Bank is fictional. These rules are loosely modelled on common
 # banking practice. They are NOT real MAS, legal or compliance requirements.
@@ -26,6 +26,10 @@
 #              | help-text | notification | email-snippet).
 #              Omit to run everywhere. If the copy's context isn't given,
 #              the rule runs. Guard rules never use this.
+#   extends    AI rules only, optional. Code rules this AI rule backs up:
+#              it catches what their lists and patterns miss. If both find
+#              the same words, only the code rule's finding is reported, at
+#              its severity (decisions.md D19). Must name `rule`-layer rules.
 #   check      How the rule is checked (see check types below).
 #   why        Why the rule exists. Shown to the reviewer next to the finding.
 #   fix        What the writer should do instead.
@@ -51,7 +55,7 @@
 #   ai           `guidance` for the model. Never decided by code.
 # ---------------------------------------------------------------------------
 
-version: 0.4
+version: 0.5
 bank: Tembusu Bank
 
 rules:
@@ -355,12 +359,16 @@ rules:
 
   # ===== Layer 3: AI judgment =============================================
   # Only for what code can't reliably catch. Findings are always suggestions.
+  # The AI is told what the code rules already found, and only reports what
+  # they missed. Any AI finding on the same words as a rule it `extends` is
+  # merged into that rule's finding.
 
   - id: AI-001
     name: Implied promise
     category: banned-phrase
     layer: ai
     severity: suggestion
+    extends: [BP-001]
     check:
       type: ai
       guidance: >
@@ -378,6 +386,7 @@ rules:
     category: plain-language
     layer: ai
     severity: suggestion
+    extends: [BP-002]
     check:
       type: ai
       guidance: >

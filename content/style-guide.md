@@ -37,7 +37,7 @@ The rules live in `rules.yaml`, and the rule pages below are generated from it, 
 
 ---
 
-*The sections below are generated from `rules.yaml` (version 0.4). Edit that file, not this page.*
+*The sections below are generated from `rules.yaml` (version 0.5). Edit that file, not this page.*
 
 ## All rules at a glance
 
@@ -147,6 +147,8 @@ Copy must never promise investment outcomes or deny risk. This is one of the mos
 
 **Flagged phrases:** `guaranteed returns`, `guaranteed profit`, `guaranteed income`, `risk-free`, `risk free`, `no risk`, `zero risk`, `0 risk`, `can't lose`, `cant lose`, `cannot lose`. Spelling variants such as curly apostrophes and hyphens are caught too.
 
+**Backed up by:** [AI-001 Implied promise](#ai-001-implied-promise), which catches rewordings this check misses.
+
 | | Example |
 |---|---|
 | Don't | Enjoy guaranteed returns with zero risk. |
@@ -162,6 +164,8 @@ These phrases mirror common phishing messages. Customers are taught to distrust 
 
 **Flagged phrases:** `act now`, `urgent action required`, `your account will be suspended`, `last chance`, `click the link below`, `verify your account immediately`. Spelling variants such as curly apostrophes and hyphens are caught too.
 
+**Backed up by:** [AI-002 Error message blames or alarms](#ai-002-error-message-blames-or-alarms), which catches rewordings this check misses.
+
 | | Example |
 |---|---|
 | Don't | Urgent action required: click the link below. |
@@ -174,6 +178,8 @@ These phrases mirror common phishing messages. Customers are taught to distrust 
 The phrase list can't catch every way of implying a promise.
 
 **What to do:** State what the product does, not what the customer is sure to get.
+
+**Works with:** [BP-001 Promised returns or no risk](#bp-001-promised-returns-or-no-risk). This rule catches rewordings that check misses. If both flag the same words, only the code rule's finding is shown.
 
 | | Example |
 |---|---|
@@ -305,6 +311,8 @@ Banking copy is often read under stress or by older customers. Long sentences hi
 Customers who feel blamed or panicked make mistakes or call the hotline. Calm, specific copy gets them back on track.
 
 **What to do:** Say what happened neutrally, then what to do next.
+
+**Works with:** [BP-002 Scam-like urgency](#bp-002-scam-like-urgency). This rule catches rewordings that check misses. If both flag the same words, only the code rule's finding is shown.
 
 | | Example |
 |---|---|

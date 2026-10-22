@@ -63,12 +63,33 @@ function details(rule: Rule): string[] {
   }
 }
 
-function rulePage(rule: Rule): string {
+/** How a code rule and the AI rule that backs it up work together (D19). */
+function related(rule: Rule, all: Rule[]): string[] {
+  const link = (r: Rule) => `[${r.id} ${r.name}](#${anchor(r)})`;
+  const lines: string[] = [];
+  const extended = all.filter((r) => rule.extends?.includes(r.id));
+  if (extended.length) {
+    lines.push(
+      `**Works with:** ${extended.map(link).join(", ")}. This rule catches rewordings ` +
+        `${extended.length === 1 ? "that check misses" : "those checks miss"}. ` +
+        "If both flag the same words, only the code rule's finding is shown.",
+    );
+  }
+  const backedBy = all.filter((r) => r.extends?.includes(rule.id));
+  if (backedBy.length) {
+    lines.push(`**Backed up by:** ${backedBy.map(link).join(", ")}, which catches rewordings this check misses.`);
+  }
+  return lines;
+}
+
+function rulePage(rule: Rule, all: Rule[]): string {
   const meta = [`**${SEVERITY[rule.severity]}**`, `Checked by: ${CHECKED_BY[rule.layer]}`];
   if (rule.contexts?.length) {
     meta.push(`Applies to: ${rule.contexts.map((context) => CONTEXT[context]).join(", ")}`);
   }
-  const extra = details(rule);
+  // Blocks of extra detail, separated by blank lines.
+  const blocks = [details(rule), ...related(rule, all).map((line) => [line])].filter((block) => block.length);
+  const extra = blocks.flatMap((block, i) => (i === 0 ? block : ["", ...block]));
   return [
     `### ${rule.name} <a id="${anchor(rule)}"></a>`,
     "",
@@ -118,7 +139,7 @@ export function renderStyleGuide(intro: string, rulesFile: RulesFile): string {
 
   for (const [category, title, blurb] of SECTIONS) {
     const inSection = rules.filter((rule) => rule.category === category);
-    if (inSection.length) lines.push(`## ${title}`, "", blurb, "", ...inSection.map(rulePage));
+    if (inSection.length) lines.push(`## ${title}`, "", blurb, "", ...inSection.map((rule) => rulePage(rule, rules)));
   }
 
   // Placeholders, collected from every rule's fix and good example.

@@ -114,6 +114,8 @@ export const Rule = z
     layer: z.enum(LAYERS),
     severity: z.enum(SEVERITIES),
     contexts: z.array(z.enum(CONTEXTS)).min(1).optional(),
+    /** AI rules only: code rules this rule backs up (decisions.md D19). */
+    extends: z.array(z.string().min(1)).min(1).optional(),
     check: Check,
     why: z.string().min(1),
     fix: z.string().min(1),
@@ -152,6 +154,13 @@ export const Rule = z
         message: "AI-layer rules use the AI- prefix, and only they do",
       });
     }
+    if (!isAi && rule.extends) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["extends"],
+        message: "Only AI rules can use `extends`",
+      });
+    }
     if (isAi && rule.severity !== "suggestion") {
       ctx.addIssue({
         code: "custom",
@@ -178,6 +187,28 @@ export const RulesFile = z
         });
       }
       seen.add(rule.id);
+    });
+
+    // `extends` must point at code rules that exist. Guard rules are excluded:
+    // copy with open guard findings never reaches the AI.
+    const byId = new Map(file.rules.map((rule) => [rule.id, rule]));
+    file.rules.forEach((rule, index) => {
+      const targets = rule.extends ?? [];
+      if (new Set(targets).size !== targets.length) {
+        ctx.addIssue({ code: "custom", path: ["rules", index, "extends"], message: `${rule.id} lists a rule twice` });
+      }
+      for (const id of targets) {
+        const target = byId.get(id);
+        if (!target) {
+          ctx.addIssue({ code: "custom", path: ["rules", index, "extends"], message: `${rule.id} extends unknown rule ${id}` });
+        } else if (target.layer !== "rule") {
+          ctx.addIssue({
+            code: "custom",
+            path: ["rules", index, "extends"],
+            message: `${rule.id} extends ${id}, which isn't a code rule (layer: rule)`,
+          });
+        }
+      }
     });
   });
 
