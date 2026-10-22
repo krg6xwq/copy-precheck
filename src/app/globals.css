@@ -1,49 +1,171 @@
+/*
+ * Design tokens for Copy pre-check (Tembusu Bank, fictional).
+ *
+ * Two tiers: primitives (raw values) and semantic tokens (what components
+ * use). Components never use primitives directly, so the look can be
+ * changed here in one place. Light theme only for now: an internal banking
+ * tool, refined later.
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ---- Primitives ---- */
+  --green-950: #062a20;
+  --green-900: #0b3d2e;
+  --green-800: #10503c;
+  --green-700: #17664d;
+  --green-100: #dcece5;
+  --green-50: #f1f7f4;
+
+  --neutral-0: #ffffff;
+  --neutral-25: #fafbfb;
+  --neutral-50: #f4f6f7;
+  --neutral-100: #e9edef;
+  --neutral-200: #d7dde1;
+  --neutral-300: #bcc4ca;
+  --neutral-500: #5f6a73;
+  --neutral-600: #4b555d;
+  --neutral-700: #353e45;
+  --neutral-900: #161c21;
+
+  --red-800: #8f1622;
+  --red-700: #a91d2b;
+  --red-200: #f2c3c8;
+  --red-50: #fdf2f3;
+
+  --amber-800: #6e4300;
+  --amber-700: #8a5600;
+  --amber-200: #f0d49e;
+  --amber-50: #fff7e6;
+
+  --blue-800: #184a8a;
+  --blue-700: #1f5aa6;
+  --blue-200: #c3d6f0;
+  --blue-50: #eef4fc;
+
+  --violet-700: #5a3f9e;
+  --violet-50: #f3f0fb;
+
+  /* ---- Semantic: surfaces and text ---- */
+  --color-page: var(--neutral-50);
+  --color-surface: var(--neutral-0);
+  --color-surface-sunken: var(--neutral-25);
+  --color-border: var(--neutral-200);
+  --color-border-strong: var(--neutral-300);
+  --color-text: var(--neutral-900);
+  --color-text-secondary: var(--neutral-600);
+  --color-text-muted: var(--neutral-500);
+  --color-text-on-brand: var(--neutral-0);
+
+  /* ---- Semantic: brand and actions ---- */
+  --color-brand: var(--green-900);
+  --color-brand-strong: var(--green-950);
+  --color-brand-subtle: var(--green-50);
+  --color-action: var(--green-800);
+  --color-action-hover: var(--green-900);
+  --color-action-subtle: var(--green-100);
+  --color-focus: var(--blue-700);
+
+  /* ---- Semantic: severity (always paired with a text label) ---- */
+  --color-blocker: var(--red-700);
+  --color-blocker-strong: var(--red-800);
+  --color-blocker-bg: var(--red-50);
+  --color-blocker-border: var(--red-200);
+
+  --color-needs-fix: var(--amber-700);
+  --color-needs-fix-strong: var(--amber-800);
+  --color-needs-fix-bg: var(--amber-50);
+  --color-needs-fix-border: var(--amber-200);
+
+  --color-suggestion: var(--blue-700);
+  --color-suggestion-strong: var(--blue-800);
+  --color-suggestion-bg: var(--blue-50);
+  --color-suggestion-border: var(--blue-200);
+
+  --color-ai: var(--violet-700);
+  --color-ai-bg: var(--violet-50);
+  --color-ok: var(--green-700);
+  --color-ok-bg: var(--green-50);
+
+  /* ---- Type ---- */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --leading-tight: 1.3;
+  --leading-normal: 1.55;
+
+  /* ---- Space, shape, depth ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --shadow-card: 0 1px 2px rgb(22 28 33 / 6%), 0 1px 1px rgb(22 28 33 / 4%);
+  --focus-ring: 0 0 0 3px var(--color-focus);
+
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html {
   height: 100%;
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
 body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--color-page);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
 }
 
 a {
-  color: inherit;
-  text-decoration: none;
+  color: var(--color-action);
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
   }
 }

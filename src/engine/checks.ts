@@ -96,7 +96,7 @@ function conditional(check: CheckOf<"conditional">, text: string): CheckResult {
   if (missing.length === 0) return { applies: true, hits: [] };
   return {
     applies: true,
-    hits: [{ span: triggers[0], detail: `Missing required wording (${missing.length} of ${check.require.length})` }],
+    hits: [{ span: triggers[0] }],
   };
 }
 

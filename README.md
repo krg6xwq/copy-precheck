@@ -40,7 +40,7 @@ npm run check -- "Watch your savings grow without lifting a finger." --context p
 | `npm test` | Runs every sample in the test set, plus the engine and validation tests. |
 | `npm run guide` | Rebuilds `content/style-guide.md` from `rules.yaml`. Run it after changing a rule. |
 | `npm run typecheck` | Checks the TypeScript. |
-| `npm run dev` | Starts the web page (placeholder for now). |
+| `npm run dev` | Starts the web page at http://localhost:3000. Reads the API key from `.env.local`. |
 
 `check` options:
 
@@ -49,6 +49,12 @@ npm run check -- "Watch your savings grow without lifting a finger." --context p
 - `--ai`: also run the AI checks with Claude. Needs `ANTHROPIC_API_KEY`. Each check costs well under a cent.
 - `--verbose`, `-v`: also list every rule and whether it ran.
 - `--json`: print the full report as JSON.
+
+## Web page
+
+Paste copy (or pick a sample from the test set), choose where it appears, and check it. The page shows the copy with flagged words highlighted, then each finding grouped by severity, with why it matters and what to do. Reviewers can accept or dismiss each finding, override a personal-data match with a reason (the AI checks then run), and download the review as Markdown.
+
+The check runs on the server, so the API key never reaches the browser. Copy is capped at 1,500 characters, and AI checks have a best-effort rate limit; the real cost cap is the spend limit on the key.
 
 ## Changing a rule
 
