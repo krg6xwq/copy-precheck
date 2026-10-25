@@ -3,15 +3,16 @@
 // and edits. Pure apart from the model call, so it's tested with a fake model.
 
 import type { Finding, Override, Report } from "../engine";
-import type { AiModel } from "../ai/model";
+import type { AiModel, AiPrompt } from "../ai/model";
 import { askWithTimeout, failureReason } from "../ai/run";
 import type { Context, RulesFile } from "../schema";
-import { changedRegions, diffWords } from "./diff";
+import { changedRegions, diffWords, type DiffPart } from "./diff";
 import { buildRevisionPrompt, RevisionAnswer } from "./prompt";
 import type { AcceptedItem, DismissedItem, Draft, DraftResult, NeedsInput, ReviewDecision, RevisionChange } from "./types";
+import { decidable, needsReason } from "./review";
 import { occurrences, verifyDraft } from "./verify";
 
-export const MAX_ROUNDS = 3;
+export { carryDecisions, decidable, MAX_ROUNDS, needsReason, type CarriedDecision } from "./review";
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 /** The decisions can't be used: not every finding decided, a missing reason, personal data open. */
@@ -26,11 +27,6 @@ const keyOf = (finding: Finding) => `${finding.ruleId}:${finding.match?.start ??
 const squash = (text: string) => text.replace(/\s+/g, " ").trim();
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
-/** Findings the reviewer must decide on: everything open except personal data, which is fixed or overridden instead. */
-export const decidable = (report: Report) => report.findings.filter((f) => !f.override && f.layer !== "guard");
-
-/** A dismissal of a serious finding needs a reason (spec: decisions and comments). */
-export const needsReason = (finding: Finding) => finding.severity === "blocker" || finding.severity === "needs-fix";
 
 /** Turns decisions into the AI's instructions, or explains what's still missing. */
 export function planRevision(report: Report, decisions: ReviewDecision[]): { accepted: AcceptedItem[]; dismissed: DismissedItem[] } {
@@ -76,9 +72,35 @@ export async function draftRevision(
   options: DraftOptions = {},
 ): Promise<DraftResult> {
   const { accepted, dismissed } = planRevision(report, decisions);
-  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  const prompt = buildRevisionPrompt({ bank: rulesFile.bank, text: report.text, context: report.context, accepted, dismissed });
+  const ask = (skipped?: string[]) =>
+    attempt(
+      buildRevisionPrompt({ bank: rulesFile.bank, text: report.text, context: report.context, accepted, dismissed, skipped }),
+      report,
+      rulesFile,
+      model,
+      accepted,
+      dismissed,
+      options,
+    );
+  const first = await ask();
+  // A draft that skips most of the accepted findings is asked for once more; the better one is kept.
+  if (first.status === "ready" && first.draft.unfixed.length * 2 > accepted.length) {
+    const second = await ask(first.draft.unfixed);
+    if (second.status === "ready" && second.draft.unfixed.length < first.draft.unfixed.length) return second;
+  }
+  return first;
+}
 
+async function attempt(
+  prompt: AiPrompt,
+  report: Report,
+  rulesFile: RulesFile,
+  model: AiModel,
+  accepted: AcceptedItem[],
+  dismissed: DismissedItem[],
+  options: DraftOptions,
+): Promise<DraftResult> {
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   let raw: unknown;
   try {
     raw = await askWithTimeout(model, prompt, timeoutMs);
@@ -93,16 +115,23 @@ export async function draftRevision(
   const text = answer.revisedText.trim();
   const refs = new Map(accepted.map((item) => [item.ref, item]));
 
-  const changes: RevisionChange[] = answer.changes
-    .filter((c) => refs.has(c.finding.trim()))
-    .map((c) => ({
-      ref: c.finding.trim(),
-      ruleId: refs.get(c.finding.trim())!.finding.ruleId,
-      before: c.before,
-      after: c.after,
-      ...(c.note?.trim() ? { note: squash(c.note).slice(0, 200) } : {}),
-      by: "ai" as const,
-    }));
+  // A change may name several findings ("F3, F7"). Unknown refs and no-op changes are dropped.
+  const changes: RevisionChange[] = answer.changes.flatMap((c) => {
+    const named = [...new Set(c.finding.match(/F\d+/g) ?? [])].filter((r) => refs.has(r));
+    if (named.length === 0 || squash(c.before) === squash(c.after)) return [];
+    const [ref, ...also] = named;
+    return [
+      {
+        ref,
+        ...(also.length ? { also } : {}),
+        ruleId: refs.get(ref)!.finding.ruleId,
+        before: c.before,
+        after: c.after,
+        ...(c.note?.trim() ? { note: squash(c.note).slice(0, 200) } : {}),
+        by: "ai" as const,
+      },
+    ];
+  });
 
   const needsInput: NeedsInput[] = answer.needsInput
     .filter((q) => refs.has(q.finding.trim()) && q.quote.trim() && occurrences(text, q.quote).length > 0 && q.question.trim())
@@ -137,11 +166,47 @@ interface RedoContext {
   overrides?: Override[];
 }
 
+/** Where a position in the old draft ends up in the new one. Inside removed words, it moves to where they were. */
+function mapPosition(parts: DiffPart[], position: number): number {
+  let from = 0;
+  let to = 0;
+  for (const part of parts) {
+    if (part.type === "added") {
+      to += part.text.length;
+      continue;
+    }
+    const end = from + part.text.length;
+    if (position < end || (position === end && part.type === "same")) {
+      return part.type === "same" ? to + (position - from) : to;
+    }
+    from = end;
+    if (part.type === "same") to += part.text.length;
+  }
+  return to;
+}
+
+/**
+ * Carries the reviewer's answer, edit or undo into the AI changes it touches, so a change
+ * whose words now read differently ("before 05/11/2026" → "before 5 Nov 2026") is still
+ * credited to its finding instead of turning into unrequested changes.
+ */
+export function carryThrough(oldText: string, newText: string, changes: RevisionChange[]): RevisionChange[] {
+  if (oldText === newText) return changes;
+  const parts = diffWords(oldText, newText);
+  return changes.map((change) => {
+    if (change.by !== "ai" || !change.after.trim()) return change;
+    const where = occurrences(oldText, change.after).at(0);
+    if (!where) return change;
+    const after = newText.slice(mapPosition(parts, where.start), mapPosition(parts, where.end)).trim();
+    return after === change.after.trim() ? change : { ...change, after };
+  });
+}
+
 const reverify = (draft: Draft, text: string, changes: RevisionChange[], needsInput: NeedsInput[], ctx: RedoContext) =>
   verifyDraft({
     original: draft.original,
     text,
-    changes,
+    changes: carryThrough(draft.text, text, changes),
     needsInput,
     accepted: draft.accepted,
     dismissed: draft.dismissed,
@@ -192,35 +257,4 @@ export function editDraft(draft: Draft, newText: string, ctx: RedoContext): Draf
   }));
   const needsInput = draft.needsInput.filter((q) => occurrences(text, q.quote).length > 0);
   return reverify(draft, text, [...draft.changes, ...edits], needsInput, ctx);
-}
-
-export interface CarriedDecision {
-  decision?: "dismissed";
-  comment?: string;
-  /** "dismissed-before": carried over. "still-found": accepted last round, but the words are still there. */
-  note: "dismissed-before" | "still-found";
-  round: number;
-}
-
-/**
- * Next round: a finding dismissed before (same rule, same words) comes back
- * already dismissed with its reason; one accepted before that's still there
- * comes back undecided, marked "still found".
- */
-export function carryDecisions(
-  previous: { finding: Finding; decision: ReviewDecision["decision"]; comment?: string; round: number }[],
-  report: Report,
-): Record<string, CarriedDecision> {
-  const same = (a: Finding, b: Finding) => a.ruleId === b.ruleId && squash(a.match?.text ?? "") === squash(b.match?.text ?? "");
-  const carried: Record<string, CarriedDecision> = {};
-  for (const finding of decidable(report)) {
-    // The most recent decision on the same words wins.
-    const prior = [...previous].reverse().find((p) => same(p.finding, finding));
-    if (!prior) continue;
-    carried[keyOf(finding)] =
-      prior.decision === "dismissed"
-        ? { decision: "dismissed", comment: prior.comment, note: "dismissed-before", round: prior.round }
-        : { note: "still-found", round: prior.round };
-  }
-  return carried;
 }

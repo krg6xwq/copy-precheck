@@ -27,6 +27,8 @@ export interface DismissedItem {
 export interface RevisionChange {
   /** F1, F2… for the AI's changes; "reviewer" for answers and manual edits. */
   ref: string;
+  /** Other findings the same change fixes ("F3, F7"). */
+  also?: string[];
   ruleId?: string;
   before: string;
   after: string;
@@ -71,6 +73,8 @@ export interface Draft {
   model?: string;
   accepted: AcceptedItem[];
   dismissed: DismissedItem[];
+  /** Refs of accepted findings the draft didn't deal with: no change, no question, and still found. */
+  unfixed: string[];
 }
 
 export type DraftResult = { status: "ready"; draft: Draft } | { status: "unavailable"; reason: string };

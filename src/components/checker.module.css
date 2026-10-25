@@ -669,9 +669,10 @@
   background: var(--color-surface-sunken);
 }
 
+/* Quieter, but text keeps full contrast: the reason written here still needs reading. */
 .findingDismissed {
-  opacity: 0.7;
   background: var(--color-surface-sunken);
+  border-style: dashed dashed dashed solid;
 }
 
 .findingActive {
@@ -777,4 +778,271 @@
 
 .overrideForm .buttonRow {
   margin-top: var(--space-2);
+}
+
+/* ---------- Review and rewrite loop ---------- */
+
+.commentField {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+}
+
+.textareaMissing {
+  border-color: var(--color-needs-fix);
+}
+
+.carried {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-page);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  width: fit-content;
+}
+
+.carriedStill {
+  color: var(--color-needs-fix-strong);
+  background: var(--color-needs-fix-bg);
+}
+
+.gate {
+  margin-top: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--color-surface);
+}
+
+.gateRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.gateRow .hint {
+  margin-top: 0;
+  flex: 1 1 240px;
+}
+
+.gateProgress {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.gateProgress strong {
+  color: var(--color-text);
+}
+
+/* Draft view */
+
+.diffRemoved {
+  color: var(--color-blocker-strong);
+  background: var(--color-blocker-bg);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.diffAdded {
+  color: var(--color-ok);
+  background: var(--color-ok-bg);
+  text-decoration: none;
+  border-bottom: 2px solid var(--color-ok);
+}
+
+.legendRemoved {
+  text-decoration: line-through;
+  color: var(--color-blocker-strong);
+}
+
+.legendAdded {
+  color: var(--color-ok);
+  border-bottom: 2px solid var(--color-ok);
+}
+
+.flag {
+  border: 1px solid var(--color-needs-fix-border);
+  border-left: 4px solid var(--color-needs-fix);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.flagKept {
+  border-color: var(--color-border);
+  border-left-color: var(--color-border-strong);
+  background: var(--color-surface-sunken);
+}
+
+.flagTitle {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.flagKind {
+  font-weight: 700;
+  color: var(--color-needs-fix-strong);
+}
+
+.flagKept .flagKind {
+  color: var(--color-text-secondary);
+}
+
+.flagKeptTag {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-page);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.question {
+  border: 1px solid var(--color-suggestion-border);
+  border-left: 4px solid var(--color-suggestion);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.question fieldset {
+  border: 0;
+  width: 100%;
+}
+
+.questionText {
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.questionQuote {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.option {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  font-size: var(--text-sm);
+}
+
+.option input {
+  accent-color: var(--color-action);
+  width: 16px;
+  height: 16px;
+}
+
+.input {
+  width: 100%;
+  max-width: 320px;
+  min-height: 36px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.changes {
+  list-style: none;
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.change {
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.change:first-child {
+  border-top: 0;
+}
+
+.changeWho {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.changeText {
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.afterCheck {
+  margin-top: var(--space-5);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+}
+
+.draftActions {
+  margin-top: var(--space-5);
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.draftActions .primaryButton {
+  padding: 0 var(--space-5);
+}
+
+.draftActions .hint {
+  flex-basis: 100%;
+  margin-top: 0;
+}
+
+/* Earlier rounds */
+
+.history {
+  margin-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+}
+
+.history summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-action);
+  width: fit-content;
+}
+
+.historyList {
+  margin: var(--space-3) 0 0 var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.historyItems {
+  margin: var(--space-2) 0 0 var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
 }

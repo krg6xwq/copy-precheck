@@ -128,10 +128,14 @@ export function verifyDraft(input: VerifyInput): Draft {
   }
   for (const fact of missingFacts(after, before)) {
     const region = regions.find((r) => regionHas(r, "draft", fact.start));
+    // A repeat isn't a new fact, but it can be a new claim ("3.5% bonus"), so it's still flagged.
+    const repeated = before.some((b) => b.kind === fact.kind && b.value === fact.value);
     flags.push({
       id: `fact-new:${fact.kind}:${fact.value}#${nth(`n:${fact.kind}:${fact.value}`)}`,
       kind: "changed-fact",
-      message: `The draft adds the ${factLabel(fact)} “${fact.text}”, which isn't in the original.`,
+      message: repeated
+        ? `The draft mentions the ${factLabel(fact)} “${fact.text}” more often than the original. Check it doesn't add a claim.`
+        : `The draft adds the ${factLabel(fact)} “${fact.text}”, which isn't in the original.`,
       after: fact.text,
       region,
       resolution: "keep-or-undo",
@@ -175,6 +179,23 @@ export function verifyDraft(input: VerifyInput): Draft {
     });
   }
 
+  // 6. Accepted findings the draft didn't deal with: no change or question names them, and
+  // they're still there (the rule still fires on the same words, or the AI's words remain).
+  const handled = new Set([
+    ...changes.flatMap((change) => (change.by === "ai" ? [change.ref, ...(change.also ?? [])] : [])),
+    ...input.needsInput.map((question) => question.ref),
+  ]);
+  const unfixed = accepted
+    .filter((item) => {
+      if (handled.has(item.ref)) return false;
+      const { finding } = item;
+      if (finding.layer === "ai") return !finding.match || occurrences(text, finding.match.text).length > 0;
+      return recheck.findings.some(
+        (f) => f.ruleId === finding.ruleId && squash(f.match?.text ?? "") === squash(finding.match?.text ?? ""),
+      );
+    })
+    .map((item) => item.ref);
+
   return {
     original,
     text,
@@ -186,6 +207,7 @@ export function verifyDraft(input: VerifyInput): Draft {
     model: input.model,
     accepted,
     dismissed,
+    unfixed,
   };
 }
 

@@ -109,6 +109,20 @@ describe("a careful draft", () => {
     expect([...new Set(draft.recheck.findings.map((f) => f.ruleId))]).toEqual(["BP-002"]);
   });
 
+  it("keeps crediting an AI change after an answer or edit lands inside it", async () => {
+    const answer = goodAnswer();
+    const rewritten = "Invest from $500 a month. Start before 05/11/2026.";
+    answer.revisedText = GOOD_TEXT.replace("Start investing from $500 a month before 05/11/2026.", rewritten);
+    answer.changes.push({ finding: ref("DC-002"), before: "Start investing from $500 a month before 05/11/2026.", after: rewritten });
+    let draft = await draftWith(answer);
+    expect(draft.flags).toEqual([]);
+    draft = answerQuestion(draft, "q1", "5 Nov 2026", ctx);
+    expect(draft.flags).toEqual([]);
+    expect(draft.changes.find((c) => c.after.startsWith("Invest from"))?.after).toBe("Invest from $500 a month. Start before 5 Nov 2026.");
+    draft = editDraft(draft, draft.text.replace("Start before", "Sign up before"), ctx);
+    expect(draft.flags).toEqual([]);
+  });
+
   it("tells the AI the decisions, comments and dismissed words, and treats the copy as data", async () => {
     const model = fakeModel(goodAnswer());
     await draftRevision(report, rules, model, decisions);
@@ -129,6 +143,22 @@ describe("drafts built to break the safeguards", () => {
     answer.changes[1].after = "3.6% p.a. interest";
     const draft = await draftWith(answer);
     expect(draft.flags.map((f) => f.id)).toEqual(expect.arrayContaining(["fact-missing:number:3.5#1", "fact-new:number:3.6#1"]));
+  });
+
+  it("flags a repeated fact as a repeat, not as new", async () => {
+    const answer = goodAnswer();
+    answer.revisedText = GOOD_TEXT.replace("Investments involve risk.", "Investments involve risk. The 3.5% rate is not guaranteed.");
+    answer.changes[3].after = "Investments involve risk. The 3.5% rate is not guaranteed.";
+    const draft = await draftWith(answer);
+    const flag = draft.flags.find((f) => f.id === "fact-new:number:3.5#1");
+    expect(flag?.message).toContain("more often than the original");
+  });
+
+  it("drops a reported change that changes nothing", async () => {
+    const answer = goodAnswer();
+    answer.changes.push({ finding: ref("DC-002"), before: "from $500 a month", after: "from $500  a month" });
+    const draft = await draftWith(answer);
+    expect(draft.changes).toHaveLength(5);
   });
 
   it("catches a dropped placeholder", async () => {
@@ -201,6 +231,49 @@ describe("drafts built to break the safeguards", () => {
   });
 });
 
+describe("drafts that skip accepted findings", () => {
+  /** Fixes only the product name, as a real low-effort draft once did. */
+  const lazyAnswer = () => ({
+    revisedText: COPY.replace("Tembusu growth account", "Tembusu Growth Account"),
+    changes: [{ finding: ref("TM-002"), before: "Tembusu growth account", after: "Tembusu Growth Account" }],
+    needsInput: [],
+  });
+  const sequence = (...answers: unknown[]) => {
+    let call = 0;
+    return fakeModel(() => structuredClone(answers[Math.min(call++, answers.length - 1)]));
+  };
+
+  it("a careful draft leaves nothing unfixed", async () => {
+    expect((await draftWith(goodAnswer())).unfixed).toEqual([]);
+  });
+
+  it("asks once more when most findings were skipped, and keeps the better draft", async () => {
+    const model = sequence(lazyAnswer(), goodAnswer());
+    const result = await draftRevision(report, rules, model, decisions);
+    expect(model.calls).toHaveLength(2);
+    expect(model.calls[1].user).toContain(`A previous draft skipped ${ref("BP-001")}`);
+    expect(result.status === "ready" && result.draft.text).toBe(GOOD_TEXT);
+  });
+
+  it("names what's still unfixed when the second try is no better", async () => {
+    const model = sequence(lazyAnswer());
+    const result = await draftRevision(report, rules, model, decisions);
+    if (result.status !== "ready") throw new Error("expected a draft");
+    const unfixed = result.draft.unfixed.map((r) => result.draft.accepted.find((a) => a.ref === r)!.finding.ruleId);
+    expect(unfixed).toEqual(expect.arrayContaining(["BP-001", "DC-001", "FM-002"]));
+    expect(unfixed).not.toContain("TM-002");
+  });
+
+  it("counts one change for every finding it names", async () => {
+    const answer = goodAnswer();
+    answer.changes[1].finding = `${ref("DC-001")}, ${ref("TM-002")}`;
+    answer.changes.splice(0, 1);
+    const draft = await draftWith(answer);
+    expect(draft.unfixed).toEqual([]);
+    expect(draft.changes.find((c) => c.also)?.also).toEqual([ref("TM-002")]);
+  });
+});
+
 describe("the reviewer's own edits", () => {
   it("records them as the reviewer's, so they aren't flagged", async () => {
     const draft = editDraft(await draftWith(goodAnswer()), GOOD_TEXT.replace("Start investing", "Begin investing"), ctx);
@@ -256,5 +329,22 @@ describe("carrying decisions into the next round", () => {
       round: 1,
     });
     expect(carried[key(find(next, "TM-002"))]).toEqual({ note: "still-found", round: 1 });
+  });
+});
+
+describe("rebuilding the report on the server", () => {
+  it("recomputes code findings and keeps only AI findings that are valid", async () => {
+    const { rebuildReport } = await import("../src/engine/revise/rebuild");
+    const text = "Watch your savings grow without lifting a finger. Act now!";
+    const at = text.indexOf("without lifting a finger");
+    const rebuilt = rebuildReport(text, rules, {}, [
+      { ruleId: "AI-001", start: at, end: at + 24, detail: "Effortless gains" },
+      { ruleId: "BP-001", start: 0, end: 5 }, // a code rule can't be supplied by the browser
+      { ruleId: "AI-999", start: 0, end: 5 }, // no such rule
+      { ruleId: "AI-002", start: 40, end: 999 }, // outside the copy
+    ]);
+    expect(rebuilt.findings.map((f) => f.ruleId).sort()).toEqual(["AI-001", "BP-002"]);
+    const ai = find(rebuilt, "AI-001");
+    expect(ai).toMatchObject({ layer: "ai", severity: "suggestion", match: { text: "without lifting a finger" } });
   });
 });

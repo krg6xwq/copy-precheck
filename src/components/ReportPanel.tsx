@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { flushSync } from "react-dom";
 import type { Finding, Report } from "@/engine";
+import { decidable, MAX_ROUNDS, needsReason, type CarriedDecision } from "@/engine/revise/review";
 import {
   CONTEXT_LABELS,
   findingDomId,
@@ -12,7 +13,7 @@ import {
   SEVERITY_LABELS,
   type Decision,
 } from "@/lib/labels";
-import { reportToMarkdown } from "@/lib/markdown";
+import { reportToMarkdown, type MarkdownExtras, type RoundSummary } from "@/lib/markdown";
 import { AiStatus } from "./AiStatus";
 import type { Result } from "./Checker";
 import { FindingCard } from "./FindingCard";
@@ -23,6 +24,17 @@ interface Props {
   result: Result | null;
   decisions: Record<string, Decision>;
   onDecision: (finding: Finding, decision: Decision | undefined) => void;
+  comments: Record<string, string>;
+  onComment: (finding: Finding, comment: string) => void;
+  carried: Record<string, CarriedDecision>;
+  onDismissSuggestions: () => void;
+  round: number;
+  history: RoundSummary[];
+  aiAvailable: boolean;
+  hasDraft: boolean;
+  draftError: string | null;
+  onDraft: () => void;
+  onShowDraft: () => void;
   onOverride: (finding: Finding, reason: string) => void;
   onUndoOverride: (finding: Finding) => void;
   pending: boolean;
@@ -57,7 +69,7 @@ function EmptyState({ ruleCount, rulesVersion }: { ruleCount: number; rulesVersi
   );
 }
 
-function summaryText(open: Finding[]): { text: string; tone: "blocker" | "needs-fix" | "suggestion" | "ok" } {
+function summaryText(open: Finding[], rounds: number): { text: string; tone: "blocker" | "needs-fix" | "suggestion" | "ok" } {
   const count = (severity: string) => open.filter((finding) => finding.severity === severity).length;
   const blockers = count("blocker");
   const fixes = count("needs-fix");
@@ -67,17 +79,28 @@ function summaryText(open: Finding[]): { text: string; tone: "blocker" | "needs-
   if (fixes) return { text: `No blockers. ${plural(fixes, "item needs", "items need")} fixing.`, tone: "needs-fix" };
   if (suggestions)
     return { text: `No blockers or required fixes. ${plural(suggestions, "suggestion", "suggestions")} to consider.`, tone: "suggestion" };
-  return { text: "No problems found by these checks. A person still reviews the copy.", tone: "ok" };
+  const after = rounds ? ` after ${plural(rounds, "round", "rounds")} of revision` : "";
+  return { text: `No problems found by these checks${after}. A person still reviews the copy.`, tone: "ok" };
 }
 
-function Export({ report, decisions, checkedAt }: { report: Report; decisions: Record<string, Decision>; checkedAt: Date }) {
+function Export({
+  report,
+  decisions,
+  checkedAt,
+  extras,
+}: {
+  report: Report;
+  decisions: Record<string, Decision>;
+  checkedAt: Date;
+  extras: MarkdownExtras;
+}) {
   const [copied, setCopied] = useState<"idle" | "done" | "failed">("idle");
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
   function download() {
-    const blob = new Blob([reportToMarkdown(report, decisions, checkedAt)], { type: "text/markdown" });
+    const blob = new Blob([reportToMarkdown(report, decisions, checkedAt, extras)], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -88,7 +111,7 @@ function Export({ report, decisions, checkedAt }: { report: Report; decisions: R
 
   async function copy() {
     try {
-      await navigator.clipboard.writeText(reportToMarkdown(report, decisions, checkedAt));
+      await navigator.clipboard.writeText(reportToMarkdown(report, decisions, checkedAt, extras));
       setCopied("done");
     } catch {
       setCopied("failed");
@@ -153,6 +176,117 @@ function FindingGroup({ id, title, hint, titleClassName = "", expanded, onToggle
   );
 }
 
+interface GateProps {
+  report: Report;
+  decisions: Record<string, Decision>;
+  comments: Record<string, string>;
+  round: number;
+  aiAvailable: boolean;
+  stale: boolean;
+  pending: boolean;
+  hasDraft: boolean;
+  draftError: string | null;
+  onDraft: () => void;
+  onShowDraft: () => void;
+  onDismissSuggestions: () => void;
+}
+
+/** The progress line and the "Draft a revision" gate (spec: screens and states, step 1). */
+function RevisionGate(props: GateProps) {
+  const { report, decisions, comments } = props;
+  const findings = decidable(report);
+  if (findings.length === 0 && report.guard.open === 0) return null;
+  const decided = findings.filter((f) => decisions[findingKey(f)]);
+  const missingReason = findings.filter(
+    (f) => decisions[findingKey(f)] === "dismissed" && needsReason(f) && !comments[findingKey(f)]?.trim(),
+  );
+  const accepted = findings.filter((f) => decisions[findingKey(f)] === "accepted");
+  const undecidedSuggestions = findings.filter((f) => f.severity === "suggestion" && !decisions[findingKey(f)]);
+
+  let blocker: string | null = null;
+  if (props.round > MAX_ROUNDS) blocker = `That was round ${MAX_ROUNDS}, the last one. Edit the copy by hand from here.`;
+  else if (!props.aiAvailable) blocker = "Drafting needs AI, which isn't set up on this server.";
+  else if (props.stale) blocker = "The copy has changed since this check. Check it again first.";
+  else if (report.guard.open > 0) blocker = "Replace the personal data with a placeholder, or override the match, first.";
+  else if (decided.length < findings.length) blocker = `Decide on every finding first: ${findings.length - decided.length} left.`;
+  else if (missingReason.length) blocker = `Give a reason for ${missingReason.length === 1 ? "the dismissed blocker or needs-fix finding" : `${missingReason.length} dismissed blocker or needs-fix findings`}.`;
+  else if (accepted.length === 0) blocker = "Nothing to revise: every finding was dismissed. Download the report when you're ready.";
+
+  return (
+    <div className={styles.gate}>
+      <div className={styles.gateRow}>
+        <p className={styles.gateProgress}>
+          <strong>
+            {decided.length} of {findings.length}
+          </strong>{" "}
+          findings decided · Round {Math.min(props.round, MAX_ROUNDS)} of {MAX_ROUNDS}
+        </p>
+        {undecidedSuggestions.length > 0 && (
+          <button type="button" className={styles.textButton} onClick={props.onDismissSuggestions} disabled={props.pending}>
+            Dismiss remaining suggestions ({undecidedSuggestions.length})
+          </button>
+        )}
+      </div>
+      <div className={styles.gateRow}>
+        {props.hasDraft ? (
+          <button type="button" className={styles.primaryButtonSmall} onClick={props.onShowDraft}>
+            Back to the draft
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={styles.primaryButtonSmall}
+            disabled={props.pending || blocker !== null}
+            aria-describedby="gate-reason"
+            onClick={props.onDraft}
+          >
+            {accepted.length === 0 && blocker?.startsWith("Nothing") ? "Nothing to revise" : "Draft a revision"}
+          </button>
+        )}
+        <p id="gate-reason" className={styles.hint}>
+          {props.hasDraft
+            ? "Your draft is waiting. Changing decisions now won't change it; discard it to draft again."
+            : (blocker ?? `The AI drafts fixes for the ${accepted.length} accepted ${accepted.length === 1 ? "finding" : "findings"}; code checks the draft before you see it.`)}
+        </p>
+      </div>
+      {props.draftError && (
+        <p className={styles.error} role="alert">
+          Couldn&apos;t draft a revision: {props.draftError}.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function History({ history }: { history: RoundSummary[] }) {
+  if (history.length === 0) return null;
+  return (
+    <details className={styles.history}>
+      <summary>Earlier rounds ({history.length})</summary>
+      <ol className={styles.historyList}>
+        {history.map((summary) => (
+          <li key={summary.round}>
+            <p className={styles.label}>Round {summary.round}</p>
+            <blockquote className={styles.quote}>{summary.text}</blockquote>
+            <ul className={styles.historyItems}>
+              {summary.items.map((item, index) => (
+                <li key={index}>
+                  {item.ruleId} {item.words ? `“${item.words}”` : item.ruleName}: {item.decision === "accepted" ? "accepted" : "dismissed"}
+                  {item.comment ? ` (${item.comment})` : ""}
+                </li>
+              ))}
+            </ul>
+            <p className={styles.hint}>
+              {summary.changes.length} {summary.changes.length === 1 ? "change" : "changes"} approved
+              {summary.kept.length ? `, ${summary.kept.length} flagged ${summary.kept.length === 1 ? "change" : "changes"} kept` : ""}.
+            </p>
+          </li>
+        ))}
+      </ol>
+    </details>
+  );
+}
+
 export function ReportPanel(props: Props) {
   const { result, decisions, pending, stale, headingRef } = props;
   const [activeKey, setActiveKey] = useState<string | null>(null);
@@ -186,7 +320,7 @@ export function ReportPanel(props: Props) {
   const outstanding = open.filter((finding) => decisions[findingKey(finding)] !== "dismissed");
   const dismissed = open.length - outstanding.length;
   const overridden = report.findings.filter((finding) => finding.override);
-  const summary = summaryText(outstanding);
+  const summary = summaryText(outstanding, props.history.length);
   const highlighted = outstanding.filter((finding) => finding.match);
 
   const card = (finding: Finding) => (
@@ -195,6 +329,10 @@ export function ReportPanel(props: Props) {
       finding={finding}
       decision={decisions[findingKey(finding)]}
       onDecision={(decision) => props.onDecision(finding, decision)}
+      comment={props.comments[findingKey(finding)] ?? ""}
+      onComment={(comment) => props.onComment(finding, comment)}
+      reasonRequired={needsReason(finding)}
+      carried={props.carried[findingKey(finding)]}
       onOverride={(reason) => props.onOverride(finding, reason)}
       onUndoOverride={() => props.onUndoOverride(finding)}
       pending={pending}
@@ -214,7 +352,12 @@ export function ReportPanel(props: Props) {
             {report.context ? CONTEXT_LABELS[report.context] : "Context not specified"} · Rules v{report.rulesVersion}
           </p>
         </div>
-        <Export report={report} decisions={decisions} checkedAt={result.checkedAt} />
+        <Export
+          report={report}
+          decisions={decisions}
+          checkedAt={result.checkedAt}
+          extras={{ comments: props.comments, round: props.round, history: props.history }}
+        />
       </div>
 
       {stale && (
@@ -239,6 +382,21 @@ export function ReportPanel(props: Props) {
       </div>
 
       <AiStatus report={report} />
+
+      <RevisionGate
+        report={report}
+        decisions={decisions}
+        comments={props.comments}
+        round={props.round}
+        aiAvailable={props.aiAvailable}
+        stale={stale}
+        pending={pending}
+        hasDraft={props.hasDraft}
+        draftError={props.draftError}
+        onDraft={props.onDraft}
+        onShowDraft={props.onShowDraft}
+        onDismissSuggestions={props.onDismissSuggestions}
+      />
 
       <HighlightedCopy text={report.text} findings={highlighted} activeKey={activeKey} onSelect={jumpToFinding} />
 
@@ -271,6 +429,8 @@ export function ReportPanel(props: Props) {
           {overridden.map(card)}
         </FindingGroup>
       )}
+
+      <History history={props.history} />
     </section>
   );
 }

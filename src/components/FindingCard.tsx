@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import type { Finding } from "@/engine";
+import type { CarriedDecision } from "@/engine/revise/draft";
 import { findingDomId, SOURCE_LABELS, type Decision } from "@/lib/labels";
 import styles from "./checker.module.css";
 
@@ -9,6 +10,13 @@ interface Props {
   finding: Finding;
   decision?: Decision;
   onDecision: (decision: Decision | undefined) => void;
+  /** The reviewer's note (on accept) or reason (on dismiss). */
+  comment: string;
+  onComment: (comment: string) => void;
+  /** Dismissing this finding needs a reason (blockers and needs fix). */
+  reasonRequired: boolean;
+  /** Set when an earlier round decided on the same words. */
+  carried?: CarriedDecision;
   onOverride: (reason: string) => void;
   onUndoOverride: () => void;
   pending: boolean;
@@ -53,7 +61,66 @@ function OverrideForm({ onSubmit, onCancel, pending }: { onSubmit: (reason: stri
   );
 }
 
-export function FindingCard({ finding, decision, onDecision, onOverride, onUndoOverride, pending, active, onActivate }: Props) {
+function CommentField({
+  decision,
+  reasonRequired,
+  comment,
+  onComment,
+}: {
+  decision: Decision;
+  reasonRequired: boolean;
+  comment: string;
+  onComment: (comment: string) => void;
+}) {
+  const id = useId();
+  const required = decision === "dismissed" && reasonRequired;
+  // Opens by itself only when a reason is required; otherwise behind a link.
+  const [open, setOpen] = useState(required || comment.length > 0);
+  if (!open && !required) {
+    return (
+      <button type="button" className={styles.textButton} onClick={() => setOpen(true)}>
+        {decision === "accepted" ? "Add a note for the revision" : "Add a reason"}
+      </button>
+    );
+  }
+  const label =
+    decision === "accepted" ? "Note for the revision (optional)" : required ? "Why dismiss this? (required)" : "Why dismiss this? (optional)";
+  const missing = required && !comment.trim();
+  return (
+    <div className={styles.commentField}>
+      <label htmlFor={id} className={styles.label}>
+        {label}
+      </label>
+      <textarea
+        id={id}
+        className={`${styles.textarea} ${missing ? styles.textareaMissing : ""}`}
+        rows={2}
+        maxLength={300}
+        value={comment}
+        aria-invalid={missing}
+        placeholder={decision === "accepted" ? "e.g. Keep it warm, this is a welcome email" : "e.g. Approved by the campaign team"}
+        onChange={(event) => onComment(event.target.value)}
+        autoFocus={!comment}
+      />
+      {required && <p className={styles.hint}>Dismissing a serious finding is recorded in the report with your reason.</p>}
+    </div>
+  );
+}
+
+export function FindingCard({
+  finding,
+  decision,
+  onDecision,
+  comment,
+  onComment,
+  reasonRequired,
+  carried,
+  onOverride,
+  onUndoOverride,
+  pending,
+  active,
+  onActivate,
+}: Props) {
   const [overriding, setOverriding] = useState(false);
   const isGuard = finding.layer === "guard";
   const dismissed = decision === "dismissed";
@@ -81,6 +148,14 @@ export function FindingCard({ finding, decision, onDecision, onOverride, onUndoO
         <span className={styles.ruleName}>{finding.ruleName}</span>
         <span className={`${styles.sourceTag} ${styles[`source-${finding.layer}`]}`}>{SOURCE_LABELS[finding.layer]}</span>
       </div>
+
+      {carried && (
+        <p className={`${styles.carried} ${carried.note === "still-found" ? styles.carriedStill : ""}`}>
+          {carried.note === "still-found"
+            ? `Still found after the round ${carried.round} revision.`
+            : `Dismissed in round ${carried.round}${carried.comment ? `: ${carried.comment}` : ""}.`}
+        </p>
+      )}
 
       {finding.match && <blockquote className={styles.quote}>“{finding.match.text}”</blockquote>}
 
@@ -156,6 +231,15 @@ export function FindingCard({ finding, decision, onDecision, onOverride, onUndoO
           >
             {dismissed ? "Dismissed" : "Dismiss"}
           </button>
+          {decision && (
+            <CommentField
+              key={decision}
+              decision={decision}
+              reasonRequired={reasonRequired}
+              comment={comment}
+              onComment={onComment}
+            />
+          )}
         </div>
       )}
     </li>

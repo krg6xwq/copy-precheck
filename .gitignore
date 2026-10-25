@@ -42,3 +42,4 @@ next-env.d.ts
 
 # example env file is safe to commit (no real values)
 !.env.example
+scratch/
