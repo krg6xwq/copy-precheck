@@ -1,6 +1,6 @@
 # Copy pre-check
 
-Checks UI copy for **Tembusu Bank**, a fictional bank, before it goes to compliance review. It flags personal data, style-guide breaks, risky phrasing and missing disclosures, and produces a report for a person to review. It never rewrites or approves anything itself.
+Checks UI copy for **Tembusu Bank**, a fictional bank, before it goes to compliance review. It flags personal data, style-guide breaks, risky phrasing and missing disclosures, and produces a report for a person to review. It never approves anything. When the reviewer asks, it drafts a revision from their decisions, and code checks that draft before they see it.
 
 > **Never paste real customer data.** Use placeholders such as `{name}`, `{nric}`, `{phone}` or `{email}`. Everything in this repo is invented.
 
@@ -11,6 +11,14 @@ Copy is checked in three layers, in this order:
 1. **Personal-data guard (code).** NRIC/FIN, phone numbers, email addresses, card numbers and account numbers. Any hit stops the copy from being sent to the AI until it's replaced with a placeholder. A reviewer can override a wrong match, with a written reason.
 2. **Rule checks (code).** Banned phrases, scam-like urgency, terminology, product names, S$ amounts, unambiguous dates, required disclosures and sentence length. The same copy always gets the same result.
 3. **AI judgment (Claude).** Only for what code can't catch: implied promises, alarming error messages, unexplained acronyms and jargon. Always shown as suggestions. Every AI finding must quote words that are really in the copy, or it's dropped. If the AI repeats a code finding, it's merged into it. If the AI is unavailable, the code findings still stand.
+
+### The review and rewrite loop
+
+1. The reviewer accepts or dismisses every finding, adding a note if they like. Dismissing a blocker or needs-fix finding needs a reason.
+2. The AI drafts a revision of the whole copy from those decisions: it fixes what was accepted, leaves dismissed words alone, and asks instead of guessing (for example, whether 05/11/2026 means May or November).
+3. Code checks the draft: facts kept, every change backed by an accepted finding, dismissed words untouched, nothing accepted left unfixed, length, and a full re-check. New personal data blocks approval.
+4. The reviewer answers any questions (code puts the answer in), keeps, undoes or edits anything flagged, and approves.
+5. The approved draft is checked again as the next round, with dismissals carried over. Up to three rounds. The downloaded report records every round.
 
 All rules live in one file, [`content/rules.yaml`](content/rules.yaml). The checker reads it, and the [style guide](content/style-guide.md) is generated from it, so the two can never disagree.
 
@@ -52,7 +60,7 @@ npm run check -- "Watch your savings grow without lifting a finger." --context p
 
 ## Web page
 
-Paste copy (or pick a sample from the test set), choose where it appears, and check it. The page shows the copy with flagged words highlighted, then each finding grouped by severity, with why it matters and what to do. Reviewers can accept or dismiss each finding, override a personal-data match with a reason (the AI checks then run), and download the review as Markdown.
+Paste copy (or pick a sample from the test set), choose where it appears, and check it. The page shows the copy with flagged words highlighted, then each finding grouped by severity, with why it matters and what to do. Reviewers can accept or dismiss each finding, override a personal-data match with a reason (the AI checks then run), and download the review as Markdown. Once every finding is decided, "Draft a revision" starts the review and rewrite loop above.
 
 The check runs on the server, so the API key never reaches the browser. Copy is capped at 1,500 characters, and AI checks have a best-effort rate limit; the real cost cap is the spend limit on the key.
 
@@ -68,7 +76,8 @@ If the rules file has a mistake, such as a misspelled severity, a missing field 
 
 ```
 content/          Rules, test set and style guide (edit these, not code, to change rules)
-src/engine/       The checker: loading, validation and the three layers (AI layer in src/engine/ai/)
+src/engine/       The checker: loading, validation and the three layers (AI layer in src/engine/ai/,
+                  review and rewrite loop in src/engine/revise/)
 src/models/       Connection to Claude (swap this to use a different model)
 src/cli/          The `npm run check` command
 src/guide/        Generates the style guide from the rules
