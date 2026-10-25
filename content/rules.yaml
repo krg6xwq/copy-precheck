@@ -1,4 +1,4 @@
-# Tembusu Bank — UI copy rules (DRAFT v0.5)
+# Tembusu Bank — UI copy rules (DRAFT v0.6)
 #
 # Tembusu Bank is fictional. These rules are loosely modelled on common
 # banking practice. They are NOT real MAS, legal or compliance requirements.
@@ -55,7 +55,7 @@
 #   ai           `guidance` for the model. Never decided by code.
 # ---------------------------------------------------------------------------
 
-version: 0.5
+version: 0.6
 bank: Tembusu Bank
 
 rules:
@@ -269,7 +269,8 @@ rules:
     severity: needs-fix
     check:
       type: pattern
-      pattern: '(?<![A-Z])\$\s?\d'
+      # Matches the whole amount ("$1,250.50"), so the highlight covers it (fixed in v0.6).
+      pattern: '(?<![A-Z])\$\s?\d[\d,]*(?:\.\d+)?'
     why: >
       A bare $ is ambiguous for customers who also hold foreign-currency
       accounts. US$ and other prefixed amounts are not flagged.

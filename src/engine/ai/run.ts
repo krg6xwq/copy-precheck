@@ -19,12 +19,12 @@ export interface AiOptions {
 
 const DEFAULT_TIMEOUT_MS = 20_000;
 
-class AiTimeoutError extends Error {}
+export class AiTimeoutError extends Error {}
 
 const overlaps = (a: Span, b: Span) => a.start < b.end && b.start < a.end;
 
 /** Calls the model, giving up after `timeoutMs` even if it ignores the signal. */
-async function askWithTimeout(
+export async function askWithTimeout(
   model: AiModel,
   prompt: Parameters<AiModel["respond"]>[0],
   timeoutMs: number,
@@ -44,7 +44,7 @@ async function askWithTimeout(
   }
 }
 
-function failureReason(error: unknown, timeoutMs: number): string {
+export function failureReason(error: unknown, timeoutMs: number): string {
   if (error instanceof AiTimeoutError) return `The AI didn't answer within ${Math.round(timeoutMs / 1000)} seconds`;
   if (error instanceof AiAnswerError) return error.message;
   return "The AI service couldn't be reached";

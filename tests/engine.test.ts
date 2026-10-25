@@ -142,3 +142,10 @@ describe("every rule's own examples", () => {
     expect(flaggedRuleIds(checkCopy(rule.examples.good, rules))).toEqual([]);
   });
 });
+
+describe("currency rule", () => {
+  it("highlights the whole amount, not just its first digit", () => {
+    const report = checkCopy("From just $1,250.50 a month.", rules);
+    expect(report.findings.find((finding) => finding.ruleId === "FM-001")?.match?.text).toBe("$1,250.50");
+  });
+});
