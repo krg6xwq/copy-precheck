@@ -194,6 +194,42 @@ describe("drafts built to break the safeguards", () => {
     expect(kinds(draft)).toEqual(["dismissed-changed"]);
   });
 
+  describe("a dismissed finding with an accepted one inside it", () => {
+    // Kurt's case: "long sentence" dismissed, "login" accepted inside the same sentence.
+    const LONG =
+      "To make sure your first monthly contribution is processed on time, please login to the Tembusu app and set up the payment before the deadline, otherwise your application will be cancelled and you will need to start again.";
+    const longReport = checkCopy(LONG, rules, { context: "help-text" });
+    const longDecisions: ReviewDecision[] = decidable(longReport).map((f) => ({
+      key: key(f),
+      decision: f.ruleId === "PL-001" ? "dismissed" : "accepted",
+    }));
+    const draftOf = async (text: string) => {
+      const result = await draftRevision(
+        longReport,
+        rules,
+        fakeModel({ revisedText: text, changes: [{ finding: "F1", before: "login to", after: "log in to" }], needsInput: [] }),
+        longDecisions,
+      );
+      if (result.status !== "ready") throw new Error(result.reason);
+      return result.draft;
+    };
+
+    it("has the findings this test relies on", () => {
+      expect(decidable(longReport).map((f) => f.ruleId).sort()).toEqual(["PL-001", "TM-001"]);
+    });
+
+    it("lets the accepted fix through without a flag", async () => {
+      expect((await draftOf(LONG.replace("login to", "log in to"))).flags).toEqual([]);
+    });
+
+    it("still catches a change to the dismissed words outside the accepted fix, and names it", async () => {
+      const draft = await draftOf(LONG.replace("login to", "log in to").replace("before the deadline", "by the deadline"));
+      const flag = draft.flags.find((f) => f.kind === "dismissed-changed");
+      expect(flag?.message).toContain("You dismissed PL-001 Long sentence here, but the draft also changed");
+      expect(flag?.message).toContain("which no finding you accepted covers");
+    });
+  });
+
   it("drops a reported change whose words aren't in the copy, and flags the real change", async () => {
     const answer = goodAnswer();
     answer.changes[2].before = "totally safe"; // not in the copy

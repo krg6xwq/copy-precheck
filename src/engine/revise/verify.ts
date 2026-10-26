@@ -142,16 +142,40 @@ export function verifyDraft(input: VerifyInput): Draft {
     });
   }
 
-  // 3. Dismissed words untouched.
+  // 3. Dismissed words untouched, except where an accepted finding overlaps them. Dismissing
+  // "long sentence" keeps the sentence; it doesn't block an accepted "login" → "log in" inside it.
   for (const item of dismissed) {
     const match = item.finding.match;
     if (!match || occurrences(text, match.text).length > 0) continue;
-    const region = regions.find((r) => r.origStart < match.end && match.start < Math.max(r.origEnd, r.origStart + 1));
+    const covered = accepted
+      .map((a) => a.finding.match)
+      .filter((m): m is NonNullable<typeof m> => Boolean(m) && m!.start < match.end && match.start < m!.end)
+      .sort((a, b) => a.start - b.start);
+    // The dismissed words that no accepted finding covers, in pieces, without edge punctuation.
+    const pieces: { start: number; text: string }[] = [];
+    let cursor = match.start;
+    for (const m of [...covered, { start: match.end, end: match.end }]) {
+      if (m.start > cursor) {
+        const raw = original.slice(cursor, m.start);
+        const lead = raw.length - raw.replace(/^[\s\p{P}]+/u, "").length;
+        const piece = raw.replace(/^[\s\p{P}]+|[\s\p{P}]+$/gu, "");
+        if (/[\p{L}\p{N}]/u.test(piece)) pieces.push({ start: cursor + lead, text: piece });
+      }
+      cursor = Math.max(cursor, m.end);
+    }
+    const changed = pieces.filter((piece) => occurrences(text, piece.text).length === 0);
+    if (changed.length === 0) continue;
+    const at = changed[0].start;
+    const region = regions.find((r) => regionHas(r, "orig", at)) ??
+      regions.find((r) => r.origStart < match.end && match.start < Math.max(r.origEnd, r.origStart + 1));
+    const rule = `${item.finding.ruleId} ${item.finding.ruleName}`;
     flags.push({
-      id: `dismissed:${item.finding.ruleId}:${squash(match.text)}`,
+      id: `dismissed:${item.finding.ruleId}:${squash(match.text)}:${squash(changed[0].text)}`,
       kind: "dismissed-changed",
-      message: `“${short(match.text)}” was dismissed (${item.finding.ruleId}), but the draft changed it.`,
-      before: match.text,
+      message: covered.length
+        ? `You dismissed ${rule} here, but the draft also changed “${short(changed[0].text)}”, which no finding you accepted covers.`
+        : `You dismissed ${rule} for “${short(match.text)}”, but the draft changed it.`,
+      before: changed[0].text,
       region,
       resolution: "keep-or-undo",
     });
