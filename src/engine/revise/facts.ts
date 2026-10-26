@@ -1,9 +1,9 @@
-// Facts a rewrite must not change: numbers, placeholders, emails, links and
+// Facts a rewrite must not change: numbers, dates, placeholders, emails, links and
 // product names. Compared by value, so "$500" → "S$500" or a casing fix to a
 // product name still count as the same fact.
 
 export interface Fact {
-  kind: "number" | "placeholder" | "email" | "link" | "product";
+  kind: "number" | "date" | "placeholder" | "email" | "link" | "product";
   /** What's compared. */
   value: string;
   /** As written, for messages. */
@@ -14,6 +14,7 @@ export interface Fact {
 
 const FACT_LABELS: Record<Fact["kind"], string> = {
   number: "number",
+  date: "date",
   placeholder: "placeholder",
   email: "email address",
   link: "link",
@@ -31,10 +32,13 @@ export function extractFacts(text: string, productNames: string[]): Fact[] {
       facts.push({ kind, value: value(match[0]), text: match[0], start: match.index, end: match.index + match[0].length });
     }
   };
-  // Links and emails first, so the digits inside them aren't also counted as numbers.
+  // Links, emails and dates first, so the digits inside them aren't also counted as numbers.
   add("link", /https?:\/\/[^\s)]+/gi, (m) => m.replace(/[.,;:]+$/, "").toLowerCase());
   add("email", /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, (m) => m.toLowerCase());
   add("placeholder", /\{[A-Za-z0-9_]+\}/g, (m) => m);
+  // Dates count as one fact, so a repeated date gives one flag, not one per number.
+  add("date", /\b\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}\b/g, (m) => m.replace(/[.-]/g, "/"));
+  add("date", /\b\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4}\b/gi, (m) => m.replace(/\s+/g, " ").toLowerCase());
   for (const name of productNames) {
     const words = name.trim().split(/\s+/).map(escape).join("\\s+");
     add("product", new RegExp(`(?<![\\p{L}\\p{N}])${words}(?![\\p{L}\\p{N}])`, "giu"), () => name.toLowerCase());

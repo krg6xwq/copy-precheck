@@ -25,6 +25,9 @@ export class RevisionInputError extends Error {
 
 const keyOf = (finding: Finding) => `${finding.ruleId}:${finding.match?.start ?? "-"}:${finding.match?.end ?? "-"}`;
 const squash = (text: string) => text.replace(/\s+/g, " ").trim();
+const wordCount = (text: string) => squash(text).split(" ").filter(Boolean).length;
+/** Longest quote or option a question may have: a date, an amount, a name. */
+const MAX_FACT_WORDS = 6;
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 
@@ -133,8 +136,19 @@ async function attempt(
     ];
   });
 
+  // A question is for one missing fact: short quote, short options, asked once. A "question"
+  // offering whole rewritten sentences is a wording fix the AI should have made, so it's dropped
+  // (the finding then shows as not fixed).
+  const asked = new Set<string>();
   const needsInput: NeedsInput[] = answer.needsInput
     .filter((q) => refs.has(q.finding.trim()) && q.quote.trim() && occurrences(text, q.quote).length > 0 && q.question.trim())
+    .filter((q) => wordCount(q.quote) <= MAX_FACT_WORDS && q.options.every((o) => wordCount(o) <= MAX_FACT_WORDS))
+    .filter((q) => {
+      const quote = squash(q.quote).toLowerCase();
+      if (asked.has(quote)) return false;
+      asked.add(quote);
+      return true;
+    })
     .slice(0, 5)
     .map((q, i) => ({
       id: `q${i + 1}`,

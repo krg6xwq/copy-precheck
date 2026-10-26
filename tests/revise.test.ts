@@ -123,6 +123,22 @@ describe("a careful draft", () => {
     expect(draft.flags).toEqual([]);
   });
 
+  it("drops a 'question' that offers rewritten sentences, and a repeated one", async () => {
+    const answer = goodAnswer();
+    answer.needsInput.push(
+      // From Kurt's test: a rewrite of another finding, dressed up as a question about the date.
+      {
+        finding: ref("BP-001"),
+        quote: "and returns may go up or down",
+        question: "Reword needs the date in neutral form; is 05/11/2026 5 Nov or 11 May?",
+        options: ["If this isn't set up by 5 Nov 2026, we won't be able to process your application.", "If this isn't set up by 11 May 2026, we won't be able to process your application."],
+      },
+      { finding: ref("FM-002"), quote: "05/11/2026", question: "Which date is this?", options: ["5 Nov 2026", "11 May 2026"] },
+    );
+    const draft = await draftWith(answer);
+    expect(draft.needsInput.map((q) => q.quote)).toEqual(["05/11/2026", "$500"]);
+  });
+
   it("tells the AI the decisions, comments and dismissed words, and treats the copy as data", async () => {
     const model = fakeModel(goodAnswer());
     await draftRevision(report, rules, model, decisions);
@@ -152,6 +168,14 @@ describe("drafts built to break the safeguards", () => {
     const draft = await draftWith(answer);
     const flag = draft.flags.find((f) => f.id === "fact-new:number:3.5#1");
     expect(flag?.message).toContain("more often than the original");
+  });
+
+  it("treats a repeated date as one fact, with one flag", async () => {
+    const answer = goodAnswer();
+    answer.revisedText = GOOD_TEXT.replace("T&Cs apply.", "T&Cs apply. Offer ends 05/11/2026.");
+    answer.changes[4].after = "T&Cs apply. Offer ends 05/11/2026.";
+    const draft = await draftWith(answer);
+    expect(draft.flags.filter((f) => f.kind === "changed-fact").map((f) => f.id)).toEqual(["fact-new:date:05/11/2026#1"]);
   });
 
   it("drops a reported change that changes nothing", async () => {
@@ -246,7 +270,7 @@ describe("drafts built to break the safeguards", () => {
     answer.changes.push({ finding: ref("FM-002"), before: "05/11/2026", after: "5 Nov 2026" });
     answer.needsInput = answer.needsInput.filter((q) => q.quote !== "05/11/2026");
     const draft = await draftWith(answer);
-    expect(draft.flags.some((f) => f.kind === "changed-fact" && f.before === "11")).toBe(true);
+    expect(draft.flags.some((f) => f.kind === "changed-fact" && f.before === "05/11/2026" && f.message.includes("date"))).toBe(true);
   });
 
   it("blocks approval when the draft adds personal data, even if kept", async () => {

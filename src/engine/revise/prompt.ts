@@ -49,11 +49,14 @@ How to revise:
 - Leave dismissed findings exactly as they are.
 - Change nothing else. Words not covered by an accepted finding stay exactly as written, including punctuation.
 - Keep every number, percentage, amount, date, placeholder such as {name}, product name, email address and link exactly as written, unless an accepted finding is about that exact text.
+- When a finding is a claim that mustn't be made (no risk, guaranteed returns, scam-like urgency), remove it or replace it with a plain fact already in the copy. Never restate the same claim in other words: "protected from loss" is still "risk-free".
 - Add no new claims, offers, promises or facts. Add a sentence only when a fix requires it, such as a required disclosure.
 - Use the standard wording for disclosures: "p.a." after an interest rate, "T&Cs apply.", and "Investments involve risk. The value may go down as well as up." Add each disclosure once. If a fix also needs to say that returns can go up or down, the risk disclosure already says it: don't add a second sentence saying the same thing.
 - Keep the meaning, the tone and roughly the length.
 
-When a fix needs a fact the copy doesn't give, don't guess. Examples: which month an ambiguous date like 05/11/2026 means, which currency a bare "$" amount is in, a figure or date that isn't stated. Leave those words unchanged in revisedText and add a needsInput item: "quote" = the exact words left unchanged, "question" = what you need to know, in plain words, "options" = up to 4 likely answers written as they should appear in the copy.
+When a fix needs a fact the copy doesn't give, don't guess. Examples: which month an ambiguous date like 05/11/2026 means, which currency a bare "$" amount is in, a figure or date that isn't stated. Leave those words unchanged in revisedText and add a needsInput item: "quote" = only the words holding the fact (such as "05/11/2026" or "$500"), "question" = what you need to know, in plain words, "options" = up to 4 likely answers, a few words each, written as they should appear in the copy.
+- Ask about each fact once, even if several findings involve it.
+- needsInput is only for missing facts, never for choosing between wordings. Make wording fixes yourself. If a sentence you're rewriting contains an unknown fact, rewrite it and keep the fact exactly as written; the question about that fact covers it.
 
 Answer format:
 - "revisedText": the whole revised copy.
