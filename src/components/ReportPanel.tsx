@@ -225,7 +225,8 @@ function History({ history }: { history: RoundSummary[] }) {
               {summary.changes.length} {summary.changes.length === 1 ? "change" : "changes"}{" "}
               {summary.kind === "hand" ? "made by hand" : "approved"}
               {summary.contextChange ? `, and where it appears changed to ${summary.contextChange.to}` : ""}
-              {summary.kept.length ? `, ${summary.kept.length} flagged ${summary.kept.length === 1 ? "change" : "changes"} kept` : ""}.
+              {summary.kept.length ? `, ${summary.kept.length} flagged ${summary.kept.length === 1 ? "change" : "changes"} kept` : ""}
+              {summary.undone?.length ? `, ${summary.undone.length} undone` : ""}.
             </p>
           </li>
         ))}

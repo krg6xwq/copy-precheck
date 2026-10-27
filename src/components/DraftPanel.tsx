@@ -20,11 +20,22 @@ export interface AnsweredQuestion {
   answer: string;
 }
 
+/** A flag the reviewer undid: the original words are back, and the card stays, closed, where it was. */
+export interface UndoneFlag {
+  id: string;
+  kind: Flag["kind"];
+  message: string;
+  quote?: Flag["quote"];
+  /** Where it sat in the flags list when it was undone. */
+  position: number;
+}
+
 interface Props {
   draft: Draft;
   round: number;
   kept: string[];
   answered: AnsweredQuestion[];
+  undone: UndoneFlag[];
   pending: boolean;
   error: string | null;
   headingRef: RefObject<HTMLHeadingElement | null>;
@@ -148,6 +159,20 @@ function Answered({ item }: { item: AnsweredQuestion }) {
   );
 }
 
+function UndoneCard({ item }: { item: UndoneFlag }) {
+  return (
+    <li className={`${styles.flag} ${styles.flagKept}`}>
+      <p className={styles.flagTitle}>
+        <span className={styles.flagKind}>{FLAG_LABELS[item.kind]}</span>
+        <span className={styles.flagKeptTag}>Undone</span>
+      </p>
+      <p className={styles.detail}>{item.message}</p>
+      {item.quote && <FlagQuote quote={item.quote} />}
+      <p className={styles.hint}>The original words are back in the draft.</p>
+    </li>
+  );
+}
+
 function FlagCard({ flag, kept, pending, onKeep, onUndo, onEdit, onActivate, onLocate }: FlagCardProps) {
   return (
     <li
@@ -243,6 +268,12 @@ export function DraftPanel(props: Props) {
     });
   }
   const reasons = approvalReasons(draft, kept);
+  // Open flags, with undone ones put back where they sat, so an undo doesn't make a card vanish.
+  type FlagItem = { flag: Flag; undone?: undefined } | { flag?: undefined; undone: UndoneFlag };
+  const flagItems: FlagItem[] = draft.flags.map((flag) => ({ flag }));
+  for (const item of [...props.undone].sort((a, b) => a.position - b.position)) {
+    flagItems.splice(Math.min(item.position, flagItems.length), 0, { undone: item });
+  }
   // Open and answered questions together, in the order the AI asked them, so an answer stays where its question was.
   const order = (id: string) => Number(id.replace(/\D/g, "")) || 0;
   const questions = [
@@ -379,26 +410,32 @@ export function DraftPanel(props: Props) {
         </figure>
       )}
 
-      {draft.flags.length > 0 && (
+      {flagItems.length > 0 && (
         <section className={styles.group} aria-labelledby="flags-heading">
           <h3 id="flags-heading" className={`${styles.groupTitle} ${styles["groupTitle-needs-fix"]}`}>
-            Flags ({draft.flags.length})
-            <span className={styles.groupHint}>Code found these. Keep, undo or edit each one.</span>
+            Flags ({flagItems.length})
+            <span className={styles.groupHint}>
+              {draft.flags.length ? "Code found these. Keep, undo or edit each one." : "All resolved."}
+            </span>
           </h3>
           <ul className={styles.findings}>
-            {draft.flags.map((flag) => (
-              <FlagCard
-                key={flag.id}
-                flag={flag}
-                kept={kept.includes(flag.id)}
-                pending={pending}
-                onKeep={(keep) => props.onKeep(flag, keep)}
-                onUndo={() => props.onUndo(flag)}
-                onEdit={startEditing}
-                onActivate={(on) => setHoveredFlag(on ? flag.id : null)}
-                onLocate={() => locate(flag)}
-              />
-            ))}
+            {flagItems.map((item) =>
+              item.undone ? (
+                <UndoneCard key={`undone-${item.undone.id}`} item={item.undone} />
+              ) : (
+                <FlagCard
+                  key={item.flag.id}
+                  flag={item.flag}
+                  kept={kept.includes(item.flag.id)}
+                  pending={pending}
+                  onKeep={(keep) => props.onKeep(item.flag, keep)}
+                  onUndo={() => props.onUndo(item.flag)}
+                  onEdit={startEditing}
+                  onActivate={(on) => setHoveredFlag(on ? item.flag.id : null)}
+                  onLocate={() => locate(item.flag)}
+                />
+              ),
+            )}
           </ul>
         </section>
       )}

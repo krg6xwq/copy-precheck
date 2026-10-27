@@ -16,7 +16,7 @@ import { CONTEXT_LABELS, findingKey, SEVERITY_LABELS, type Decision } from "@/li
 import { downloadReport } from "@/lib/download";
 import type { RoundSummary } from "@/lib/markdown";
 import { CopyBar } from "./CopyBar";
-import { DraftPanel, type AnsweredQuestion } from "./DraftPanel";
+import { DraftPanel, type AnsweredQuestion, type UndoneFlag } from "./DraftPanel";
 import { HowItChecks, InputPanel } from "./InputPanel";
 import { ReportPanel } from "./ReportPanel";
 import styles from "./checker.module.css";
@@ -84,6 +84,8 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
   const [kept, setKept] = useState<string[]>([]);
   // Answers given in this draft, kept on screen (and in the report) after their question closes.
   const [answers, setAnswers] = useState<AnsweredQuestion[]>([]);
+  // Flags the reviewer undid in this draft, kept on screen (and in the report) after they close.
+  const [undone, setUndone] = useState<UndoneFlag[]>([]);
   const [showDraft, setShowDraft] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
   const draftsUsed = history.filter((summary) => summary.kind !== "hand").length;
@@ -231,6 +233,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
     setDraft(null);
     setKept([]);
     setAnswers([]);
+    setUndone([]);
     setShowDraft(false);
     setDraftError(null);
   }
@@ -289,6 +292,8 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
       setKept((current) => current.filter((id) => next.flags.some((flag) => flag.id === id)));
       setDraft(next);
       setShowDraft(true);
+      // A flag that's back (an edit brought the problem back) is open again, not undone.
+      setUndone((current) => current.filter((item) => !next.flags.some((flag) => flag.id === item.id)));
       onDraft?.(next);
       if (step.kind === "draft") {
         setStatus(`Draft ready. ${next.flags.length} flagged, ${next.needsInput.length} questions.`);
@@ -303,6 +308,19 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
     revise({ kind: "answer", questionId: question.id, answer: value }, () =>
       setAnswers((current) => [...current, { id: question.id, question: question.question, quote: question.quote, answer: value }]),
     );
+  }
+
+  function undo(flag: Flag) {
+    if (!draft) return;
+    const position = draft.flags.findIndex((f) => f.id === flag.id);
+    revise({ kind: "undo", flagId: flag.id }, (next) => {
+      // Only if the undo actually closed it.
+      if (next.flags.some((f) => f.id === flag.id)) return;
+      setUndone((current) => [
+        ...current.filter((item) => item.id !== flag.id),
+        { id: flag.id, kind: flag.kind, message: flag.message, quote: flag.quote, position },
+      ]);
+    });
   }
 
   function keep(flag: Flag, on: boolean) {
@@ -325,6 +343,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
       })),
       unfixed: unfixedLabels(draft),
       kept: draft.flags.filter((flag) => kept.includes(flag.id)).map((flag) => flag.message),
+      undone: undone.map((item) => item.message),
       answers,
       model: draft.model,
       approvedAt: new Date(),
@@ -476,11 +495,12 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
           round={round}
           kept={kept}
           answered={answers}
+          undone={undone}
           pending={isPending}
           error={draftError}
           headingRef={draftHeading}
           onKeep={keep}
-          onUndo={(flag) => revise({ kind: "undo", flagId: flag.id })}
+          onUndo={undo}
           onAnswer={answer}
           onEdit={(value) => revise({ kind: "edit", text: value })}
           onApprove={approve}

@@ -24,6 +24,8 @@ export interface RoundSummary {
   items: { ruleId: string; ruleName: string; words?: string; decision: Decision; comment?: string }[];
   changes: { who: string; before: string; after: string }[];
   kept: string[];
+  /** Flags the reviewer undid (the original words were put back). */
+  undone?: string[];
   /** Accepted findings the approved draft didn't fix. */
   unfixed?: string[];
   answers: { question: string; answer: string }[];
@@ -104,6 +106,7 @@ function roundLines(summary: RoundSummary): string[] {
   }
   for (const answer of summary.answers) lines.push(`- Reviewer answered “${inline(answer.question)}”: ${inline(answer.answer)}`);
   for (const flag of summary.kept) lines.push(`- Flag kept by the reviewer: ${inline(flag)}`);
+  for (const flag of summary.undone ?? []) lines.push(`- Flag undone by the reviewer (original words put back): ${inline(flag)}`);
   for (const label of summary.unfixed ?? []) lines.push(`- Accepted but not fixed in this draft: ${inline(label)}`);
   lines.push("");
   return lines;

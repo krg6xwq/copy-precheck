@@ -84,13 +84,17 @@ describe("rounds in the report", () => {
   });
 
   it("records a hand edit as its own round, with what changed and where the copy appears", () => {
-    const history = [round(1, "ai"), round(2, "hand", { contextChange: { from: "Email", to: "Notification" } })];
+    const history = [
+      round(1, "ai", { undone: ["Changed “little” to “well”, but no accepted finding asked for it."] }),
+      round(2, "hand", { contextChange: { from: "Email", to: "Notification" } }),
+    ];
     const markdown = reportToMarkdown(checkCopy("Log in to see it.", rules), {}, new Date(), { history, round: 3 });
     expect(markdown).toContain("- Revisions: 2 (1 drafted by AI, 1 edited by hand)");
     expect(markdown).toContain("### Round 2 · edited by hand");
     expect(markdown).toContain("Changes made by hand:");
     expect(markdown).toContain("- Where it appears: Email → Notification");
     expect(markdown).toContain("- Reviewer's edit: “login” → “log in”");
+    expect(markdown).toContain("- Flag undone by the reviewer (original words put back): Changed “little” to “well”");
   });
 });
 
