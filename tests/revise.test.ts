@@ -249,9 +249,50 @@ describe("drafts built to break the safeguards", () => {
     it("still catches a change to the dismissed words outside the accepted fix, and names it", async () => {
       const draft = await draftOf(LONG.replace("login to", "log in to").replace("before the deadline", "by the deadline"));
       const flag = draft.flags.find((f) => f.kind === "dismissed-changed");
-      expect(flag?.message).toContain("You dismissed PL-001 Long sentence here, but the draft also changed");
-      expect(flag?.message).toContain("which no finding you accepted covers");
+      expect(flag?.message).toBe(
+        "The draft changed “before” to “by”. You dismissed PL-001 Long sentence for this text, and no finding you accepted covers those words.",
+      );
+      // The whole sentence comes with the flag, with the changed word marked.
+      expect(flag?.quote?.text).toBe(LONG);
+      expect(flag?.quote?.marks.map((m) => LONG.slice(m.start, m.end).trim())).toEqual(["before"]);
     });
+  });
+
+  it("names words moved out of a dismissed sentence, shows the whole sentence, and Undo targets them", async () => {
+    // Kurt's case: "long sentence" dismissed; "login" and an alarming ending accepted. The fix for the
+    // ending moved "before the deadline" into a new sentence, outside both accepted findings.
+    const { rebuildReport } = await import("../src/engine/revise/rebuild");
+    const LONG =
+      "To make sure your first monthly contribution is processed on time, please login to the Tembusu app and set up the payment before the deadline, otherwise your application will be cancelled and you will need to start again.";
+    const ending = LONG.indexOf("otherwise");
+    const report = rebuildReport(LONG, rules, { context: "help-text" }, [{ ruleId: "AI-002", start: ending, end: LONG.length - 1 }]);
+    const decisions: ReviewDecision[] = decidable(report).map((f) => ({
+      key: key(f),
+      decision: f.ruleId === "PL-001" ? "dismissed" : "accepted",
+    }));
+    const refOf = (ruleId: string) => planRevision(report, decisions).accepted.find((a) => a.finding.ruleId === ruleId)!.ref;
+    const after = "Please set it up before the deadline so we can process your application.";
+    const text = LONG.replace("login to", "log in to").replace(" before the deadline, otherwise your application will be cancelled and you will need to start again.", `. ${after}`);
+    const result = await draftRevision(
+      report,
+      rules,
+      fakeModel({
+        revisedText: text,
+        changes: [
+          { finding: refOf("TM-001"), before: "login to", after: "log in to" },
+          { finding: refOf("AI-002"), before: "otherwise your application will be cancelled and you will need to start again", after },
+        ],
+        needsInput: [],
+      }),
+      decisions,
+    );
+    if (result.status !== "ready") throw new Error(result.reason);
+    const flag = result.draft.flags.find((f) => f.kind === "dismissed-changed");
+    expect(flag?.message).toContain("The draft moved “before the deadline” out of the text below");
+    expect(flag?.quote?.marks.map((m) => LONG.slice(m.start, m.end).trim())).toContain("before the deadline");
+    // Undo puts back the moved words, not the accepted "log in".
+    expect(LONG.slice(flag!.region!.origStart, flag!.region!.origEnd)).toContain("before the deadline");
+    expect(LONG.slice(flag!.region!.origStart, flag!.region!.origEnd)).not.toContain("login");
   });
 
   it("drops a reported change whose words aren't in the copy, and flags the real change", async () => {

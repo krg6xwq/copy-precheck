@@ -1157,3 +1157,21 @@
     padding: var(--space-3) var(--space-4);
   }
 }
+
+/* ---------- Flags linked to the draft ---------- */
+
+/* The words a flag is about, inside its full quote. */
+.markChanged {
+  background: var(--color-needs-fix-bg);
+  color: var(--color-needs-fix-strong);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  padding: 0 2px;
+}
+
+/* The spot in the before-and-after view for the flag being hovered, focused or shown. */
+.diffActive {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+  border-radius: var(--radius-sm);
+}

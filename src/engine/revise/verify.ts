@@ -165,18 +165,38 @@ export function verifyDraft(input: VerifyInput): Draft {
     }
     const changed = pieces.filter((piece) => occurrences(text, piece.text).length === 0);
     if (changed.length === 0) continue;
-    const at = changed[0].start;
-    const region = regions.find((r) => regionHas(r, "orig", at)) ??
-      regions.find((r) => r.origStart < match.end && match.start < Math.max(r.origEnd, r.origStart + 1));
+
+    // Name the exact words that changed inside the protected piece, and point Undo at them,
+    // not at the whole piece (which mostly reads the same) or at another change nearby.
+    const piece = changed[0];
+    const pieceEnd = piece.start + piece.text.length;
+    const inside = regions.filter((r) =>
+      r.origStart === r.origEnd ? r.origStart > piece.start && r.origStart < pieceEnd : r.origStart < pieceEnd && piece.start < r.origEnd,
+    );
+    const edge = (value: string) => value.replace(/^[\s\p{P}]+|[\s\p{P}]+$/gu, "");
+    const describe = (r: Region) => {
+      const removed = edge(original.slice(Math.max(r.origStart, piece.start), Math.min(r.origEnd, pieceEnd)));
+      const added = edge(text.slice(r.draftStart, r.draftEnd));
+      if (!removed) return `added “${short(added, 40)}” to the text below`;
+      if (occurrences(text, removed).length > 0) return `moved “${short(removed, 40)}” out of the text below`;
+      const whollyInside = r.origStart >= piece.start && r.origEnd <= pieceEnd;
+      return whollyInside && added ? `changed “${short(removed, 40)}” to “${short(added, 40)}”` : `removed “${short(removed, 40)}”`;
+    };
+    const what = inside.length ? inside.slice(0, 2).map(describe).join(" and ") : `changed “${short(piece.text, 60)}”`;
+    const region = inside[0];
     const rule = `${item.finding.ruleId} ${item.finding.ruleName}`;
+    // The whole dismissed text is shown with the flag, with the changed words marked, so no quote is cut off.
+    const marks = (inside.length ? inside : [{ origStart: piece.start, origEnd: pieceEnd }])
+      // Only the protected words, not the parts an accepted finding changed.
+      .map((r) => ({ start: Math.max(r.origStart, piece.start) - match.start, end: Math.min(r.origEnd, pieceEnd) - match.start }))
+      .filter((m) => m.end > m.start);
     flags.push({
-      id: `dismissed:${item.finding.ruleId}:${squash(match.text)}:${squash(changed[0].text)}`,
+      id: `dismissed:${item.finding.ruleId}:${squash(match.text)}:${squash(piece.text)}`,
       kind: "dismissed-changed",
-      message: covered.length
-        ? `You dismissed ${rule} here, but the draft also changed “${short(changed[0].text)}”, which no finding you accepted covers.`
-        : `You dismissed ${rule} for “${short(match.text)}”, but the draft changed it.`,
-      before: changed[0].text,
+      message: `The draft ${what}. You dismissed ${rule} for this text${covered.length ? ", and no finding you accepted covers those words" : ""}.`,
+      before: piece.text,
       region,
+      quote: { text: match.text, marks },
       resolution: "keep-or-undo",
     });
   }

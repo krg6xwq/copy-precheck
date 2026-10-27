@@ -5,7 +5,8 @@
 // Approve stays disabled until every flag is kept or undone and every
 // question is answered.
 
-import { useId, useState, type RefObject } from "react";
+import { useId, useRef, useState, type RefObject } from "react";
+import type { DiffPart, Region } from "@/engine/revise/diff";
 import type { Draft, Flag, NeedsInput } from "@/engine/revise/types";
 import { changeSource, MAX_ROUNDS, unfixedLabels } from "@/engine/revise/review";
 import { SEVERITIES, SEVERITY_LABELS } from "@/lib/labels";
@@ -87,15 +88,65 @@ function Question({ question, pending, onAnswer }: { question: NeedsInput; pendi
   );
 }
 
-function FlagCard({ flag, kept, pending, onKeep, onUndo, onEdit }: { flag: Flag; kept: boolean; pending: boolean; onKeep: (keep: boolean) => void; onUndo: () => void; onEdit: () => void }) {
+/** The flag's original words in full, with the changed parts marked. */
+function FlagQuote({ quote }: { quote: NonNullable<Flag["quote"]> }) {
+  const parts: { text: string; marked: boolean }[] = [];
+  let cursor = 0;
+  for (const mark of [...quote.marks].sort((a, b) => a.start - b.start)) {
+    if (mark.start > cursor) parts.push({ text: quote.text.slice(cursor, mark.start), marked: false });
+    parts.push({ text: quote.text.slice(Math.max(mark.start, cursor), mark.end), marked: true });
+    cursor = Math.max(cursor, mark.end);
+  }
+  if (cursor < quote.text.length) parts.push({ text: quote.text.slice(cursor), marked: false });
   return (
-    <li className={`${styles.flag} ${kept ? styles.flagKept : ""}`}>
+    <blockquote className={styles.quote}>
+      “
+      {parts.map((part, index) =>
+        part.marked ? (
+          <mark key={index} className={styles.markChanged}>
+            {part.text}
+          </mark>
+        ) : (
+          <span key={index}>{part.text}</span>
+        ),
+      )}
+      ”
+    </blockquote>
+  );
+}
+
+interface FlagCardProps {
+  flag: Flag;
+  kept: boolean;
+  pending: boolean;
+  onKeep: (keep: boolean) => void;
+  onUndo: () => void;
+  onEdit: () => void;
+  onActivate: (on: boolean) => void;
+  onLocate: () => void;
+}
+
+function FlagCard({ flag, kept, pending, onKeep, onUndo, onEdit, onActivate, onLocate }: FlagCardProps) {
+  return (
+    <li
+      className={`${styles.flag} ${kept ? styles.flagKept : ""}`}
+      onMouseEnter={() => onActivate(true)}
+      onMouseLeave={() => onActivate(false)}
+      onFocus={() => onActivate(true)}
+      onBlur={() => onActivate(false)}
+    >
       <p className={styles.flagTitle}>
         <span className={styles.flagKind}>{FLAG_LABELS[flag.kind]}</span>
         {kept && <span className={styles.flagKeptTag}>Kept</span>}
       </p>
       <p className={styles.detail}>{flag.message}</p>
+      {flag.quote && <FlagQuote quote={flag.quote} />}
       <div className={styles.buttonRow}>
+        {flag.region && (
+          <button type="button" className={styles.textButton} onClick={onLocate}>
+            Show in draft
+          </button>
+        )}
         {flag.resolution === "keep-or-undo" &&
           (kept ? (
             <button type="button" className={styles.textButton} onClick={() => onKeep(false)} disabled={pending}>
@@ -119,11 +170,43 @@ function FlagCard({ flag, kept, pending, onKeep, onUndo, onEdit }: { flag: Flag;
   );
 }
 
+/** Which diff parts fall inside a flag's region, for highlighting the spot in the draft. */
+function partsIn(diff: DiffPart[], region: Region | undefined): Set<number> {
+  const hit = new Set<number>();
+  if (!region) return hit;
+  let orig = 0;
+  let draft = 0;
+  diff.forEach((part, index) => {
+    const length = part.text.length;
+    if (part.type === "added") {
+      if (draft < region.draftEnd && region.draftStart < draft + length) hit.add(index);
+      draft += length;
+      return;
+    }
+    if (orig < region.origEnd && region.origStart < orig + length && part.type === "removed") hit.add(index);
+    orig += length;
+    if (part.type === "same") draft += length;
+  });
+  return hit;
+}
+
 export function DraftPanel(props: Props) {
   const { draft, round, kept, pending, error, headingRef } = props;
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(draft.text);
   const editId = useId();
+  const [activeFlag, setActiveFlag] = useState<string | null>(null);
+  const active = partsIn(draft.diff, draft.flags.find((flag) => flag.id === activeFlag)?.region);
+  const diffBox = useRef<HTMLParagraphElement>(null);
+  function locate(flag: Flag) {
+    setActiveFlag(flag.id);
+    requestAnimationFrame(() => {
+      const first = diffBox.current?.querySelector("[data-active]");
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      // Centred, so the sticky header doesn't cover it.
+      first?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+    });
+  }
   const reasons = approvalReasons(draft, kept);
   const unfixed = unfixedLabels(draft);
   const unfixedNote = unfixed.length
@@ -231,20 +314,22 @@ export function DraftPanel(props: Props) {
       ) : (
         <figure className={styles.copyPreview}>
           <figcaption className={styles.label}>Before and after</figcaption>
-          <p className={styles.copyText}>
-            {draft.diff.map((part, index) =>
-              part.type === "same" ? (
+          <p className={styles.copyText} ref={diffBox}>
+            {draft.diff.map((part, index) => {
+              const on = active.has(index);
+              const marker = on ? { "data-active": "" } : {};
+              return part.type === "same" ? (
                 <span key={index}>{part.text}</span>
               ) : part.type === "removed" ? (
-                <del key={index} className={styles.diffRemoved}>
+                <del key={index} {...marker} className={`${styles.diffRemoved} ${on ? styles.diffActive : ""}`}>
                   {part.text}
                 </del>
               ) : (
-                <ins key={index} className={styles.diffAdded}>
+                <ins key={index} {...marker} className={`${styles.diffAdded} ${on ? styles.diffActive : ""}`}>
                   {part.text}
                 </ins>
-              ),
-            )}
+              );
+            })}
           </p>
           <p className={styles.hint}>
             <span className={styles.legendRemoved}>Struck through</span>: removed ·{" "}
@@ -269,6 +354,8 @@ export function DraftPanel(props: Props) {
                 onKeep={(keep) => props.onKeep(flag, keep)}
                 onUndo={() => props.onUndo(flag)}
                 onEdit={startEditing}
+                onActivate={(on) => setActiveFlag(on ? flag.id : null)}
+                onLocate={() => locate(flag)}
               />
             ))}
           </ul>

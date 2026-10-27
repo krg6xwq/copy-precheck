@@ -55,8 +55,10 @@ export interface Flag {
   message: string;
   before?: string;
   after?: string;
-  /** Where Undo puts the original words back, when it can. */
+  /** Where Undo puts the original words back, when it can. Also what "Show in draft" highlights. */
   region?: Region;
+  /** The original words the flag is about, in full (a whole dismissed sentence), with the changed parts marked. */
+  quote?: { text: string; marks: { start: number; end: number }[] };
   /** "keep-or-undo": the reviewer may keep the change. "edit-only": must be fixed by editing. */
   resolution: "keep-or-undo" | "edit-only";
 }
