@@ -13,9 +13,13 @@ import {
 
 const DECISION_LABELS: Record<Decision, string> = { accepted: "Accepted", dismissed: "Dismissed" };
 
-/** One approved round of the review and rewrite loop, for the audit trail. */
+/** One round of the review and rewrite loop, for the audit trail: an approved AI draft, or a hand edit. */
 export interface RoundSummary {
   round: number;
+  /** "ai": an approved AI draft. "hand": the reviewer edited the copy themselves. */
+  kind?: "ai" | "hand";
+  /** Where the copy appears, when the reviewer changed it in a hand edit. */
+  contextChange?: { from: string; to: string };
   text: string;
   items: { ruleId: string; ruleName: string; words?: string; decision: Decision; comment?: string }[];
   changes: { who: string; before: string; after: string }[];
@@ -74,14 +78,25 @@ function aiLine(report: Report): string {
 }
 
 function roundLines(summary: RoundSummary): string[] {
-  const lines = [`### Round ${summary.round} (approved ${time(summary.approvedAt)})`, "", ...summary.text.split("\n").map((l) => `> ${inline(l)}`), ""];
-  lines.push("Decisions:", "");
+  const hand = summary.kind === "hand";
+  const heading = hand
+    ? `### Round ${summary.round} · edited by hand (${time(summary.approvedAt)})`
+    : `### Round ${summary.round} (approved ${time(summary.approvedAt)})`;
+  const lines = [heading, "", ...summary.text.split("\n").map((l) => `> ${inline(l)}`), ""];
+  if (summary.items.length) lines.push(hand ? "Decisions made before the edit:" : "Decisions:", "");
   for (const item of summary.items) {
     const words = item.words ? ` — “${inline(item.words)}”` : "";
     const comment = item.comment?.trim() ? ` (${item.decision === "dismissed" ? "reason" : "note"}: ${inline(item.comment)})` : "";
     lines.push(`- ${item.ruleId} ${inline(item.ruleName)}${words}: ${DECISION_LABELS[item.decision]}${comment}`);
   }
-  lines.push("", `Changes in the approved draft${summary.model ? ` (drafted by ${inline(summary.model)}, checked by code)` : ""}:`, "");
+  lines.push(
+    "",
+    hand ? "Changes made by hand:" : `Changes in the approved draft${summary.model ? ` (drafted by ${inline(summary.model)}, checked by code)` : ""}:`,
+    "",
+  );
+  if (summary.contextChange) {
+    lines.push(`- Where it appears: ${inline(summary.contextChange.from)} → ${inline(summary.contextChange.to)}`);
+  }
   for (const change of summary.changes) {
     const before = change.before.trim() ? `“${inline(change.before.trim())}”` : "(nothing)";
     const after = change.after.trim() ? `“${inline(change.after.trim())}”` : "(removed)";
@@ -92,6 +107,14 @@ function roundLines(summary: RoundSummary): string[] {
   for (const label of summary.unfixed ?? []) lines.push(`- Accepted but not fixed in this draft: ${inline(label)}`);
   lines.push("");
   return lines;
+}
+
+/** "3 (2 drafted by AI, 1 edited by hand)", or just "2" when they're all one kind. */
+export function revisionCount(history: RoundSummary[]): string {
+  const hand = history.filter((s) => s.kind === "hand").length;
+  const ai = history.length - hand;
+  if (!hand || !ai) return `${history.length}${hand ? ` (edited by hand)` : ""}`;
+  return `${history.length} (${ai} drafted by AI, ${hand} edited by hand)`;
 }
 
 export function reportToMarkdown(
@@ -105,7 +128,7 @@ export function reportToMarkdown(
     "# Copy pre-check report",
     "",
     `- Checked: ${time(checkedAt)}`,
-    ...(history.length ? [`- Revisions approved: ${history.length}`] : []),
+    ...(history.length ? [`- Revisions: ${revisionCount(history)}`] : []),
     `- Where it appears: ${report.context ? CONTEXT_LABELS[report.context] : "Not specified"}`,
     `- Rules: version ${report.rulesVersion}`,
     `- AI checks: ${aiLine(report)}`,

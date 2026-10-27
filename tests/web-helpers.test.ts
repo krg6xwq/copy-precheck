@@ -4,7 +4,7 @@ import { loadRules } from "../src/engine/load";
 import { allowAiCheck, resetRateLimit } from "../src/app/rate-limit";
 import { segmentCopy } from "../src/lib/highlight";
 import { CONTEXT_LABELS } from "../src/lib/labels";
-import { reportToMarkdown } from "../src/lib/markdown";
+import { reportToMarkdown, revisionCount, type RoundSummary } from "../src/lib/markdown";
 
 const rules = loadRules();
 const T01 = "Grow your money with guaranteed returns of 3.2% interest. Act now!";
@@ -62,6 +62,35 @@ describe("reportToMarkdown", () => {
   it("escapes characters that would break the Markdown", () => {
     const markdown = reportToMarkdown(checkCopy("Use *bold* | pipes", rules), {}, new Date());
     expect(markdown).toContain("> Use \\*bold\\* \\| pipes");
+  });
+});
+
+describe("rounds in the report", () => {
+  const round = (n: number, kind: "ai" | "hand", extra: Partial<RoundSummary> = {}): RoundSummary => ({
+    round: n,
+    kind,
+    text: `Copy before round ${n}`,
+    items: [],
+    changes: [{ who: kind === "hand" ? "Reviewer's edit" : "TM-001 Preferred wording", before: "login", after: "log in" }],
+    kept: [],
+    answers: [],
+    approvedAt: new Date("2026-10-27T03:00:00Z"),
+    ...extra,
+  });
+
+  it("counts AI drafts and hand edits separately", () => {
+    expect(revisionCount([round(1, "ai"), round(2, "hand"), round(3, "ai")])).toBe("3 (2 drafted by AI, 1 edited by hand)");
+    expect(revisionCount([round(1, "ai"), round(2, "ai")])).toBe("2");
+  });
+
+  it("records a hand edit as its own round, with what changed and where the copy appears", () => {
+    const history = [round(1, "ai"), round(2, "hand", { contextChange: { from: "Email", to: "Notification" } })];
+    const markdown = reportToMarkdown(checkCopy("Log in to see it.", rules), {}, new Date(), { history, round: 3 });
+    expect(markdown).toContain("- Revisions: 2 (1 drafted by AI, 1 edited by hand)");
+    expect(markdown).toContain("### Round 2 · edited by hand");
+    expect(markdown).toContain("Changes made by hand:");
+    expect(markdown).toContain("- Where it appears: Email → Notification");
+    expect(markdown).toContain("- Reviewer's edit: “login” → “log in”");
   });
 });
 

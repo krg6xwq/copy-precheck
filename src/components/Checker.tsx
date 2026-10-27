@@ -11,11 +11,13 @@ import { checkAction, reviseAction, type ReviseInput } from "@/app/actions";
 import type { Sample } from "@/app/content";
 import { carryDecisions, changeSource, decidable, unfixedLabels, type CarriedDecision } from "@/engine/revise/review";
 import type { Draft, Flag, NeedsInput } from "@/engine/revise/types";
-import { findingKey, SEVERITY_LABELS, type Decision } from "@/lib/labels";
+import { changedRegions, diffWords } from "@/engine/revise/diff";
+import { CONTEXT_LABELS, findingKey, SEVERITY_LABELS, type Decision } from "@/lib/labels";
+import { downloadReport } from "@/lib/download";
 import type { RoundSummary } from "@/lib/markdown";
 import { CopyBar } from "./CopyBar";
 import { DraftPanel } from "./DraftPanel";
-import { InputPanel } from "./InputPanel";
+import { HowItChecks, InputPanel } from "./InputPanel";
 import { ReportPanel } from "./ReportPanel";
 import styles from "./checker.module.css";
 
@@ -61,6 +63,7 @@ interface PastDecision {
 }
 
 export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLength }: Props) {
+  // The start page's form. After a check, the copy is edited from the copy bar instead.
   const [text, setText] = useState("");
   const [context, setContext] = useState<Context | "">("");
   const [result, setResult] = useState<Result | null>(null);
@@ -71,9 +74,6 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
   const [status, setStatus] = useState("");
   const [isPending, startTransition] = useTransition();
   const resultsHeading = useRef<HTMLHeadingElement>(null);
-  const copyField = useRef<HTMLTextAreaElement>(null);
-  // The form collapses after a check, so the results get the full width.
-  const [editing, setEditing] = useState(true);
   const draftHeading = useRef<HTMLHeadingElement>(null);
 
   // The review and rewrite loop.
@@ -85,6 +85,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
   const [answers, setAnswers] = useState<{ question: string; answer: string }[]>([]);
   const [showDraft, setShowDraft] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
+  const draftsUsed = history.filter((summary) => summary.kind !== "hand").length;
 
   // Moves focus to a panel's heading and brings the panel's top into view. The heading sits in a
   // sticky header, so focusing it alone wouldn't scroll: switching from the bottom of the findings
@@ -98,29 +99,32 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
       if (panel && panel.getBoundingClientRect().top < 0) panel.scrollIntoView({ block: "start" });
     });
 
-  function run(input: CheckedInput, overrides: Override[], mode: CheckMode, nextPast: PastDecision[] = past) {
+  /**
+   * Checks copy. `onSuccess` records the round that led here (an approved draft or a hand edit),
+   * and only runs once the check has worked, so a failed check never leaves a round recorded for
+   * results that aren't on screen.
+   */
+  function run(
+    input: CheckedInput,
+    overrides: Override[],
+    mode: CheckMode,
+    options: { nextPast?: PastDecision[]; onSuccess?: () => void } = {},
+  ) {
     setError(null);
     startTransition(async () => {
       let response;
       try {
-        response = await checkAction({
-          text: input.text,
-          context: input.context || undefined,
-          overrides,
-        });
+        response = await checkAction({ text: input.text, context: input.context || undefined, overrides });
       } catch {
         setError("Couldn't reach the server. Refresh the page and try again.");
-        setEditing(true);
         return;
       }
       if (!response.ok) {
-        // The error shows in the form, so open it.
         setError(response.error);
-        setEditing(true);
         return;
       }
       const report = response.report;
-      setEditing(false);
+      options.onSuccess?.();
       if (mode === "new") {
         setDecisions({});
         setComments({});
@@ -131,7 +135,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
         clearDraft();
       } else if (mode === "next-round") {
         // Dismissals come back already dismissed, with their reason; accepted words still there are marked.
-        const carry = carryDecisions(nextPast, report);
+        const carry = carryDecisions(options.nextPast ?? past, report);
         const nextDecisions: Record<string, Decision> = {};
         const nextComments: Record<string, string> = {};
         for (const [key, item] of Object.entries(carry)) {
@@ -147,10 +151,6 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
       focus(resultsHeading);
     });
   }
-
-  const stale =
-    result !== null &&
-    (result.input.text !== text.trim() || result.input.context !== context);
 
   function setDecision(finding: Finding, decision: Decision | undefined) {
     setDecisions((current) => {
@@ -176,8 +176,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
     });
   }
 
-  // Overrides re-run the same copy that produced the report, even if the
-  // text box has been edited since.
+  // Overrides re-run the same copy that produced the report.
   function override(finding: Finding, reason: string) {
     if (!result || !finding.match) return;
     const next = [...result.overrides, { ruleId: finding.ruleId, match: finding.match.text, reason }];
@@ -188,6 +187,39 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
     if (!result || !finding.match) return;
     const next = result.overrides.filter((o) => !(o.ruleId === finding.ruleId && o.match === finding.match!.text));
     run(result.input, next, "same-copy");
+  }
+
+  /**
+   * This round's decisions, for the audit trail and for carrying into the next round. A dismissal
+   * carried over unchanged keeps the round it was made in, so it still reads "Dismissed in round 1".
+   */
+  function roundDecisions(report: Report): PastDecision[] {
+    return decidable(report)
+      .filter((f) => decisions[findingKey(f)])
+      .map((f) => {
+        const key = findingKey(f);
+        const comment = comments[key]?.trim() || undefined;
+        const before = carried[key];
+        const unchanged = before?.decision === decisions[key] && (before.comment?.trim() || undefined) === comment;
+        return { finding: f, decision: decisions[key], comment, round: unchanged ? before.round : round };
+      });
+  }
+
+  const summaryItems = (items: PastDecision[]) =>
+    items.map((d) => ({
+      ruleId: d.finding.ruleId,
+      ruleName: d.finding.ruleName,
+      words: d.finding.match?.text,
+      decision: d.decision,
+      comment: d.comment,
+    }));
+
+  /** Records a finished round and moves to the next. Runs only after the next check has worked. */
+  function commitRound(summary: RoundSummary, nextPast: PastDecision[]) {
+    setHistory((current) => [...current, summary]);
+    setPast(nextPast);
+    setRound((current) => current + 1);
+    clearDraft();
   }
 
   // ---- Drafting ----
@@ -208,7 +240,8 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
       text: report.text,
       context: report.context,
       overrides: result.overrides,
-      round,
+      // Which AI draft this is; hand edits don't count toward the limit.
+      round: draftsUsed + 1,
       aiFindings: report.findings
         .filter((f) => f.layer === "ai" && f.match)
         .map((f) => ({ ruleId: f.ruleId, start: f.match!.start, end: f.match!.end, detail: f.detail, suggestion: f.suggestion })),
@@ -276,20 +309,12 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
   function approve() {
     if (!result || !draft) return;
     const { report } = result;
-    const findings = decidable(report);
-    const roundDecisions: PastDecision[] = findings
-      .filter((f) => decisions[findingKey(f)])
-      .map((f) => ({ finding: f, decision: decisions[findingKey(f)], comment: comments[findingKey(f)]?.trim() || undefined, round }));
+    const items = roundDecisions(report);
     const summary: RoundSummary = {
       round,
+      kind: "ai",
       text: report.text,
-      items: roundDecisions.map((d) => ({
-        ruleId: d.finding.ruleId,
-        ruleName: d.finding.ruleName,
-        words: d.finding.match?.text,
-        decision: d.decision,
-        comment: d.comment,
-      })),
+      items: summaryItems(items),
       changes: draft.changes.map((change) => ({
         who: changeSource(draft, change, "Reviewer's"),
         before: change.before,
@@ -301,42 +326,74 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
       model: draft.model,
       approvedAt: new Date(),
     };
-    const nextPast = [...past, ...roundDecisions];
+    const nextPast = [...past, ...items];
     const nextText = draft.text;
     // Overrides only carry over while their words are still in the copy.
     const nextOverrides = result.overrides.filter((o) => nextText.includes(o.match));
-    setHistory((current) => [...current, summary]);
-    setPast(nextPast);
-    setRound((current) => current + 1);
-    setText(nextText);
-    clearDraft();
-    run({ text: nextText, context: result.input.context }, nextOverrides, "next-round", nextPast);
+    run({ text: nextText, context: result.input.context }, nextOverrides, "next-round", {
+      nextPast,
+      onSuccess: () => commitRound(summary, nextPast),
+    });
   }
 
-  const draftVisible = draft !== null && showDraft;
-  const collapsed = result !== null && !editing;
-
-  function cancelEditing() {
+  /** The reviewer edited the copy themselves: recorded as a round of its own, then checked as the next one. */
+  function checkEdit(nextText: string, nextContext: Context | "") {
     if (!result) return;
-    setText(result.input.text);
-    setContext(result.input.context);
-    setError(null);
-    setEditing(false);
-    focus(draftVisible ? draftHeading : resultsHeading);
+    const { report } = result;
+    const items = roundDecisions(report);
+    const summary: RoundSummary = {
+      round,
+      kind: "hand",
+      text: report.text,
+      items: summaryItems(items),
+      changes: changedRegions(diffWords(report.text, nextText)).map((region) => ({
+        who: "Reviewer's edit",
+        before: report.text.slice(region.origStart, region.origEnd),
+        after: nextText.slice(region.draftStart, region.draftEnd),
+      })),
+      ...(nextContext !== result.input.context
+        ? {
+            contextChange: {
+              from: result.input.context ? CONTEXT_LABELS[result.input.context] : "Not specified",
+              to: nextContext ? CONTEXT_LABELS[nextContext] : "Not specified",
+            },
+          }
+        : {}),
+      kept: [],
+      answers: [],
+      approvedAt: new Date(),
+    };
+    const nextPast = [...past, ...items];
+    const nextOverrides = result.overrides.filter((o) => nextText.includes(o.match));
+    run({ text: nextText, context: nextContext }, nextOverrides, "next-round", {
+      nextPast,
+      onSuccess: () => commitRound(summary, nextPast),
+    });
   }
 
-  return (
-    <div className={collapsed ? styles.layoutSingle : styles.layout}>
-      {collapsed ? (
-        <CopyBar
-          input={result.input}
-          pending={isPending}
-          onEdit={() => {
-            setEditing(true);
-            requestAnimationFrame(() => copyField.current?.focus());
-          }}
-        />
-      ) : (
+  /** Back to the start page with the latest copy in the form. Everything else is cleared. */
+  function newCheck() {
+    if (result) {
+      setText(result.input.text);
+      setContext(result.input.context);
+    }
+    setResult(null);
+    setDecisions({});
+    setComments({});
+    setCarried({});
+    setRound(1);
+    setHistory([]);
+    setPast([]);
+    setError(null);
+    clearDraft();
+    setStatus("Started a new check.");
+  }
+
+  const markdownExtras = { comments, round, history };
+
+  if (!result) {
+    return (
+      <div className={styles.startLayout}>
         <InputPanel
           samples={samples}
           text={text}
@@ -348,10 +405,32 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
           pending={isPending}
           error={error}
           onSubmit={() => run({ text: text.trim(), context }, [], "new")}
-          onCancel={result ? cancelEditing : undefined}
-          copyRef={copyField}
         />
-      )}
+        <HowItChecks ruleCount={ruleCount} rulesVersion={rulesVersion} />
+        <p className="visually-hidden" role="status" aria-live="polite">
+          {isPending ? "Working…" : status}
+        </p>
+      </div>
+    );
+  }
+
+  const draftVisible = draft !== null && showDraft;
+
+  return (
+    <div className={styles.layoutSingle}>
+      <CopyBar
+        // A new check result resets the bar (closing the editor after a successful edit).
+        key={result.checkedAt.getTime()}
+        input={result.input}
+        pending={isPending}
+        error={error}
+        maxLength={maxLength}
+        hasDraft={draft !== null}
+        rounds={history.length}
+        onCheckEdit={checkEdit}
+        onNewCheck={newCheck}
+        onDownload={() => downloadReport(result.report, decisions, result.checkedAt, markdownExtras)}
+      />
       {draftVisible ? (
         <DraftPanel
           key={draft.text}
@@ -385,6 +464,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
           carried={carried}
           onDismissSuggestions={dismissSuggestions}
           round={round}
+          draftsUsed={draftsUsed}
           history={history}
           aiAvailable={aiAvailable}
           hasDraft={draft !== null}
@@ -397,10 +477,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
           onOverride={override}
           onUndoOverride={undoOverride}
           pending={isPending}
-          stale={stale}
           headingRef={resultsHeading}
-          rulesVersion={rulesVersion}
-          ruleCount={ruleCount}
         />
       )}
       <p className="visually-hidden" role="status" aria-live="polite">

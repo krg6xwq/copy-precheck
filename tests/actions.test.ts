@@ -16,7 +16,7 @@ describe("drafting rounds", () => {
   it("refuses a draft after the 10th revision, even if the page is bypassed", async () => {
     const { reviseAction } = await import("../src/app/actions");
     const result = await reviseAction({ ...base, round: 11 });
-    expect(result).toEqual({ ok: false, error: expect.stringContaining("revised this copy 10 times") });
+    expect(result).toEqual({ ok: false, error: expect.stringContaining("had 10 AI revisions") });
   });
 
   it("allows the 10th round", async () => {

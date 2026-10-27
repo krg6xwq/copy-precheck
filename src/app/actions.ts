@@ -89,7 +89,7 @@ const ReviseInput = z.object({
   text: Copy,
   context: z.enum(CONTEXTS).optional(),
   overrides: Overrides,
-  // Checked against MAX_ROUNDS below, with a clear message; this bound only rejects nonsense.
+  /** Which AI draft this is for the copy (hand edits don't count). Checked against MAX_ROUNDS below. */
   round: z.number().int().min(1).max(MAX_ROUNDS + 1),
   aiFindings: z
     .array(

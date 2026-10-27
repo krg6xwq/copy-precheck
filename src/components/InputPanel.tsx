@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, type Ref } from "react";
+import { useId, useState } from "react";
 import type { Context } from "@/engine";
 import type { Sample } from "@/app/content";
 import { CONTEXT_LABELS } from "@/lib/labels";
@@ -17,14 +17,44 @@ interface Props {
   pending: boolean;
   error: string | null;
   onSubmit: () => void;
-  /** Present when there are results to go back to: closes the form without checking. */
-  onCancel?: () => void;
-  copyRef?: Ref<HTMLTextAreaElement>;
 }
 
 const truncate = (text: string, length: number) => (text.length > length ? `${text.slice(0, length - 1)}…` : text);
 
-export function InputPanel({ copyRef, onCancel, ...props }: Props) {
+/** The start page's second card: what happens when you check. */
+export function HowItChecks({ ruleCount, rulesVersion }: { ruleCount: number; rulesVersion: string }) {
+  return (
+    <section className={`${styles.card} ${styles.howCard}`} aria-labelledby="how-heading">
+      <h2 id="how-heading" className={styles.cardTitle}>
+        How it checks
+      </h2>
+      <p className={styles.intro}>
+        {ruleCount} rules, checked in three steps, then your review. Rules version {rulesVersion}.
+      </p>
+      <ol className={styles.steps}>
+        <li>
+          <strong>Personal data.</strong> NRIC, phone numbers, emails, card and account numbers. If any are found, the copy
+          isn&apos;t sent to the AI until they&apos;re replaced or a reviewer overrides the match.
+        </li>
+        <li>
+          <strong>Rule checks.</strong> Banned phrases, required disclosures, wording, money and date formats. Same copy,
+          same result, every time.
+        </li>
+        <li>
+          <strong>AI suggestions.</strong> Judgment calls code can&apos;t make, such as implied promises or jargon. Always
+          suggestions, and every one must quote words that are really in the copy.
+        </li>
+        <li>
+          <strong>Review and revise.</strong> Accept or dismiss each finding, then have the AI draft a revision from your
+          decisions. Code checks every draft, and you approve it. Repeat until you&apos;re happy, then copy the text or
+          download the report.
+        </li>
+      </ol>
+    </section>
+  );
+}
+
+export function InputPanel(props: Props) {
   const { samples, text, context, aiAvailable, maxLength, pending, error } = props;
   const [sampleId, setSampleId] = useState("");
   const ids = { sample: useId(), context: useId(), copy: useId(), count: useId() };
@@ -60,10 +90,9 @@ export function InputPanel({ copyRef, onCancel, ...props }: Props) {
               Copy
             </label>
             <textarea
-              ref={copyRef}
               id={ids.copy}
               className={styles.textarea}
-              rows={6}
+              rows={8}
               maxLength={maxLength}
               value={text}
               aria-describedby={ids.count}
@@ -148,11 +177,6 @@ export function InputPanel({ copyRef, onCancel, ...props }: Props) {
             "Check copy"
           )}
         </button>
-        {onCancel && (
-          <button type="button" className={styles.textButton} onClick={onCancel} disabled={pending}>
-            Cancel and keep the current results
-          </button>
-        )}
       </form>
     </section>
   );

@@ -2,20 +2,21 @@
 
 /* ---------- Layout ---------- */
 
-.layout {
+/* Start page: the form, with "How it checks" beside it on wide screens. */
+.startLayout {
   display: grid;
-  grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
   gap: var(--space-5);
   align-items: start;
 }
 
 @media (max-width: 960px) {
-  .layout {
+  .startLayout {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
-/* After a check: the form collapses into a bar and the results take the full width. */
+/* After a check: the copy bar on top, and the results or draft at full width. */
 .layoutSingle {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -28,17 +29,6 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   padding: var(--space-5);
-}
-
-.inputCard {
-  position: sticky;
-  top: var(--space-5);
-}
-
-@media (max-width: 960px) {
-  .inputCard {
-    position: static;
-  }
 }
 
 .reportCard {
@@ -314,10 +304,6 @@
 }
 
 /* ---------- Empty state ---------- */
-
-.empty {
-  max-width: 560px;
-}
 
 .steps {
   margin-top: var(--space-5);
@@ -1003,10 +989,35 @@
 /* ---------- Collapsed form ---------- */
 
 .copyBar {
+  padding: var(--space-3) var(--space-5);
+}
+
+.copyBarRow {
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-3) var(--space-5);
+}
+
+.copyBar .error {
+  margin-top: var(--space-3);
+}
+
+/* Edit copy, opened in place of the bar. */
+.copyEditor .form {
+  margin-top: 0;
+}
+
+/* "Start a new check?", shown inside the bar. */
+.confirm {
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-needs-fix-border);
+  border-radius: var(--radius-md);
+  background: var(--color-needs-fix-bg);
+  font-size: var(--text-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .copyBarText {
@@ -1153,8 +1164,11 @@
   }
 
   .copyBar {
-    flex-wrap: wrap;
     padding: var(--space-3) var(--space-4);
+  }
+
+  .copyBarRow {
+    flex-wrap: wrap;
   }
 }
 

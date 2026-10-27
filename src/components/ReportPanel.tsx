@@ -13,7 +13,8 @@ import {
   SEVERITY_LABELS,
   type Decision,
 } from "@/lib/labels";
-import { reportToMarkdown, type MarkdownExtras, type RoundSummary } from "@/lib/markdown";
+import { downloadReport } from "@/lib/download";
+import type { MarkdownExtras, RoundSummary } from "@/lib/markdown";
 import { AiBanner, AiDetails, AiMeta } from "./AiStatus";
 import type { Result } from "./Checker";
 import { FindingCard } from "./FindingCard";
@@ -21,7 +22,7 @@ import { HighlightedCopy } from "./HighlightedCopy";
 import styles from "./checker.module.css";
 
 interface Props {
-  result: Result | null;
+  result: Result;
   decisions: Record<string, Decision>;
   onDecision: (finding: Finding, decision: Decision | undefined) => void;
   comments: Record<string, string>;
@@ -29,6 +30,8 @@ interface Props {
   carried: Record<string, CarriedDecision>;
   onDismissSuggestions: () => void;
   round: number;
+  /** AI drafts approved so far, for the hard stop (hand edits don't count). */
+  draftsUsed: number;
   history: RoundSummary[];
   aiAvailable: boolean;
   hasDraft: boolean;
@@ -38,35 +41,7 @@ interface Props {
   onOverride: (finding: Finding, reason: string) => void;
   onUndoOverride: (finding: Finding) => void;
   pending: boolean;
-  stale: boolean;
   headingRef: RefObject<HTMLHeadingElement | null>;
-  rulesVersion: string;
-  ruleCount: number;
-}
-
-function EmptyState({ ruleCount, rulesVersion }: { ruleCount: number; rulesVersion: string }) {
-  return (
-    <div className={styles.empty}>
-      <h2 className={styles.cardTitle}>Results appear here</h2>
-      <p className={styles.intro}>
-        {ruleCount} rules, checked in three steps. Rules version {rulesVersion}.
-      </p>
-      <ol className={styles.steps}>
-        <li>
-          <strong>Personal data.</strong> NRIC, phone numbers, emails, card and account numbers. If any are found, the
-          copy isn&apos;t sent to the AI until they&apos;re replaced or a reviewer overrides the match.
-        </li>
-        <li>
-          <strong>Rule checks.</strong> Banned phrases, required disclosures, wording, money and date formats. Same
-          copy, same result, every time.
-        </li>
-        <li>
-          <strong>AI suggestions.</strong> Judgment calls code can&apos;t make, such as implied promises or jargon.
-          Always suggestions, and every one must quote words that are really in the copy.
-        </li>
-      </ol>
-    </div>
-  );
 }
 
 function summaryText(open: Finding[], rounds: number): { text: string; tone: "blocker" | "needs-fix" | "suggestion" | "ok" } {
@@ -99,15 +74,7 @@ function Export({
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  function download() {
-    const blob = new Blob([reportToMarkdown(report, decisions, checkedAt, extras)], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `copy-precheck-${checkedAt.toISOString().slice(0, 10)}.md`;
-    link.click();
-    URL.revokeObjectURL(url);
-  }
+  const download = () => downloadReport(report, decisions, checkedAt, extras);
 
   // Copies the copy itself (after approved rounds, the latest version), ready to paste back into
   // Figma or a doc. The full report is what Download report is for.
@@ -195,16 +162,15 @@ function gateState(props: Props, report: Report) {
   const applies = findings.length > 0 || report.guard.open > 0;
 
   let blocker: string | null = null;
-  if (props.round > MAX_ROUNDS) blocker = ROUND_LIMIT_MESSAGE;
+  if (props.draftsUsed >= MAX_ROUNDS) blocker = ROUND_LIMIT_MESSAGE;
   else if (!props.aiAvailable) blocker = "Drafting needs AI, which isn't set up on this server.";
-  else if (props.stale) blocker = "The copy has changed since this check. Check it again first.";
   else if (report.guard.open > 0) blocker = "Replace the personal data, or override the match, first.";
   else if (decided.length < findings.length) blocker = `Decide on every finding first: ${findings.length - decided.length} left.`;
   else if (missingReason.length)
     blocker = `Give a reason for ${missingReason.length === 1 ? "the dismissed blocker or needs-fix finding" : `${missingReason.length} dismissed blocker or needs-fix findings`}.`;
   else if (accepted.length === 0) blocker = "Nothing to revise: every finding was dismissed.";
 
-  const lastRound = props.round === MAX_ROUNDS ? " This is the last revision for this check." : "";
+  const lastRound = props.draftsUsed === MAX_ROUNDS - 1 ? " This is the last AI revision for this check." : "";
   const hint = props.hasDraft
     ? "Your draft is waiting. Discard it to draft again with new decisions."
     : (blocker ??
@@ -242,7 +208,10 @@ function History({ history }: { history: RoundSummary[] }) {
       <ol className={styles.historyList}>
         {history.map((summary) => (
           <li key={summary.round}>
-            <p className={styles.label}>Round {summary.round}</p>
+            <p className={styles.label}>
+              Round {summary.round}
+              {summary.kind === "hand" ? " · edited by hand" : ""}
+            </p>
             <blockquote className={styles.quote}>{summary.text}</blockquote>
             <ul className={styles.historyItems}>
               {summary.items.map((item, index) => (
@@ -253,7 +222,9 @@ function History({ history }: { history: RoundSummary[] }) {
               ))}
             </ul>
             <p className={styles.hint}>
-              {summary.changes.length} {summary.changes.length === 1 ? "change" : "changes"} approved
+              {summary.changes.length} {summary.changes.length === 1 ? "change" : "changes"}{" "}
+              {summary.kind === "hand" ? "made by hand" : "approved"}
+              {summary.contextChange ? `, and where it appears changed to ${summary.contextChange.to}` : ""}
               {summary.kept.length ? `, ${summary.kept.length} flagged ${summary.kept.length === 1 ? "change" : "changes"} kept` : ""}.
             </p>
           </li>
@@ -264,7 +235,7 @@ function History({ history }: { history: RoundSummary[] }) {
 }
 
 export function ReportPanel(props: Props) {
-  const { result, decisions, pending, stale, headingRef } = props;
+  const { result, decisions, pending, headingRef } = props;
   const [activeKey, setActiveKey] = useState<string | null>(null);
   // Kept across checks, so a reviewer's layout survives re-checking and overrides.
   const [collapsed, setCollapsed] = useState<string[]>([]);
@@ -281,14 +252,6 @@ export function ReportPanel(props: Props) {
     card.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
     // Focusing the card marks it as active, and lets keyboard users carry on from there.
     card.focus({ preventScroll: true });
-  }
-
-  if (!result) {
-    return (
-      <section className={`${styles.card} ${styles.reportCard}`} aria-label="Results">
-        <EmptyState ruleCount={props.ruleCount} rulesVersion={props.rulesVersion} />
-      </section>
-    );
   }
 
   const { report } = result;
@@ -323,7 +286,7 @@ export function ReportPanel(props: Props) {
       <strong>
         {gate.decided.length} of {gate.findings.length}
       </strong>{" "}
-      decided · {props.round > MAX_ROUNDS ? `${MAX_ROUNDS} revisions` : `Round ${props.round}`}
+      decided · Round {props.round}
     </p>
   );
 
@@ -366,12 +329,6 @@ export function ReportPanel(props: Props) {
         </p>
       )}
 
-      {stale && (
-        <p className={styles.staleNotice} role="note">
-          The copy or settings have changed since this check. Check again to update the results.
-        </p>
-      )}
-
       <AiBanner report={report} />
 
       <div className={`${styles.summary} ${styles[`tone-${summary.tone}`]}`}>
@@ -390,7 +347,7 @@ export function ReportPanel(props: Props) {
           {progress}
         </div>
         {dismissed > 0 && <p className={styles.dismissedNote}>{dismissed} dismissed by the reviewer.</p>}
-        {props.history.length >= NUDGE_AFTER_ROUNDS && props.round <= MAX_ROUNDS && (
+        {props.history.length >= NUDGE_AFTER_ROUNDS && props.draftsUsed < MAX_ROUNDS && (
           <p className={styles.roundNote}>
             You&apos;ve revised this copy {props.history.length} times. Keep going if it helps, or edit it by hand if
             that&apos;s quicker. Copy text and Download report are ready whenever you are.

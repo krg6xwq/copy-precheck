@@ -60,7 +60,9 @@ npm run check -- "Watch your savings grow without lifting a finger." --context p
 
 ## Web page
 
-Paste copy (or pick a sample from the test set), choose where it appears, and check it. The page shows the copy with flagged words highlighted, then each finding grouped by severity, with why it matters and what to do. Reviewers can accept or dismiss each finding, override a personal-data match with a reason (the AI checks then run), and download the review as Markdown. Once every finding is decided, "Draft a revision" starts the review and rewrite loop above.
+The page opens with a form: paste copy (or pick a sample from the test set), choose where it appears, and check it. The results show the copy with flagged words highlighted, then each finding grouped by severity, with why it matters and what to do. Reviewers can accept or dismiss each finding, and override a personal-data match with a reason (the AI checks then run). Once every finding is decided, "Draft a revision" starts the review and rewrite loop above.
+
+Above the results, **Edit copy** lets the reviewer change the words themselves; the edit is checked as the next round, dismissals carry over, and the report records it as "edited by hand". **New check** starts over with different copy, and asks first (offering the report) when there are rounds to lose. **Copy text** copies the latest version of the copy; **Download report** saves the full review, every round included, as Markdown.
 
 The check runs on the server, so the API key never reaches the browser. Copy is capped at 1,500 characters, and AI checks have a best-effort rate limit; the real cost cap is the spend limit on the key.
 
