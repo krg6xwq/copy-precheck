@@ -109,9 +109,11 @@ function Export({
     URL.revokeObjectURL(url);
   }
 
+  // Copies the copy itself (after approved rounds, the latest version), ready to paste back into
+  // Figma or a doc. The full report is what Download report is for.
   async function copy() {
     try {
-      await navigator.clipboard.writeText(reportToMarkdown(report, decisions, checkedAt, extras));
+      await navigator.clipboard.writeText(report.text);
       setCopied("done");
     } catch {
       setCopied("failed");
@@ -123,7 +125,7 @@ function Export({
   return (
     <div className={styles.exportActions}>
       <button type="button" className={styles.secondaryButton} onClick={copy}>
-        Copy as Markdown
+        Copy text
       </button>
       <button type="button" className={styles.secondaryButton} onClick={download}>
         Download report
@@ -132,9 +134,7 @@ function Export({
       <div role="status" aria-live="polite" className={styles.toastRegion}>
         {copied !== "idle" && (
           <p className={`${styles.toast} ${copied === "failed" ? styles.toastFailed : ""}`}>
-            {copied === "done"
-              ? "Report copied as Markdown."
-              : "Couldn't copy the report. Try Download report instead."}
+            {copied === "done" ? "Text copied." : "Couldn't copy the text. Select it in the copy box instead."}
           </p>
         )}
       </div>
