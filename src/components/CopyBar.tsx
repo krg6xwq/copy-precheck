@@ -23,6 +23,11 @@ interface Props {
   rounds: number;
   /** The logo was clicked with rounds to lose: ask before clearing. */
   confirming: boolean;
+  /**
+   * False while the draft page is showing: there, "Edit draft" is the way to change text, and
+   * editing the copy from before the draft would discard it.
+   */
+  editable: boolean;
   onCheckEdit: (text: string, context: Context | "") => void;
   onNewCheck: () => void;
   onCancelNewCheck: () => void;
@@ -51,7 +56,7 @@ export function CopyBar(props: Props) {
     </h1>
   );
 
-  if (mode === "edit" && !props.confirming) {
+  if (mode === "edit" && !props.confirming && props.editable) {
     return (
       <section className={`${styles.card} ${styles.copyEditor}`} aria-labelledby="copy-bar-heading" aria-busy={pending}>
         {heading}
@@ -150,7 +155,8 @@ export function CopyBar(props: Props) {
             <span className={`${styles.spinner} ${styles.spinnerOnLight}`} aria-hidden="true" /> Checking…
           </p>
         ) : (
-          !props.confirming && (
+          !props.confirming &&
+          props.editable && (
             <button type="button" className={styles.secondaryButton} onClick={openEditor}>
               Edit copy
             </button>

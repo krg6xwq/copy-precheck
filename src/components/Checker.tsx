@@ -463,6 +463,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
         hasDraft={draft !== null}
         rounds={history.length}
         confirming={confirmingNew}
+        editable={!draftVisible}
         onCheckEdit={checkEdit}
         onNewCheck={newCheck}
         onCancelNewCheck={() => setConfirmingNew(false)}
