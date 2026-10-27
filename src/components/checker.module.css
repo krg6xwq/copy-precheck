@@ -1175,3 +1175,10 @@
   outline-offset: 1px;
   border-radius: var(--radius-sm);
 }
+
+/* Mentions how many times the copy has been revised, after a few rounds. A note, not a warning. */
+.roundNote {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}

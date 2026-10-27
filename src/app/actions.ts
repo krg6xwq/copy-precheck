@@ -12,6 +12,7 @@ import {
   draftRevision,
   editDraft,
   MAX_ROUNDS,
+  ROUND_LIMIT_MESSAGE,
   planRevision,
   RevisionInputError,
   undoFlag,
@@ -88,7 +89,8 @@ const ReviseInput = z.object({
   text: Copy,
   context: z.enum(CONTEXTS).optional(),
   overrides: Overrides,
-  round: z.number().int().min(1).max(MAX_ROUNDS),
+  // Checked against MAX_ROUNDS below, with a clear message; this bound only rejects nonsense.
+  round: z.number().int().min(1).max(MAX_ROUNDS + 1),
   aiFindings: z
     .array(
       z.object({
@@ -155,13 +157,15 @@ export type ReviseResult = { ok: true; result: DraftResult } | { ok: false; erro
 export async function reviseAction(input: ReviseInput): Promise<ReviseResult> {
   const parsed = ReviseInput.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "That request couldn't be used" };
-  const { text, context, overrides, aiFindings, decisions, draft, step } = parsed.data;
+  const { text, context, overrides, round, aiFindings, decisions, draft, step } = parsed.data;
 
   try {
     const { rules } = getContent();
     const report = rebuildReport(text, rules, { context, overrides }, aiFindings);
 
     if (step.kind === "draft") {
+      // The hard stop is enforced here too, not only by the disabled button.
+      if (round > MAX_ROUNDS) return { ok: false, error: ROUND_LIMIT_MESSAGE };
       const model = claudeFromEnv();
       if (!model) return { ok: true, result: { status: "unavailable", reason: "AI isn't set up on this server" } };
       if (!allowAiCheck(await visitorId())) {

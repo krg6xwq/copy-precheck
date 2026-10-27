@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { flushSync } from "react-dom";
 import type { Finding, Report } from "@/engine";
-import { decidable, MAX_ROUNDS, needsReason, type CarriedDecision } from "@/engine/revise/review";
+import { decidable, MAX_ROUNDS, needsReason, NUDGE_AFTER_ROUNDS, ROUND_LIMIT_MESSAGE, type CarriedDecision } from "@/engine/revise/review";
 import {
   CONTEXT_LABELS,
   findingDomId,
@@ -195,7 +195,7 @@ function gateState(props: Props, report: Report) {
   const applies = findings.length > 0 || report.guard.open > 0;
 
   let blocker: string | null = null;
-  if (props.round > MAX_ROUNDS) blocker = `That was round ${MAX_ROUNDS}, the last one. Edit the copy by hand from here.`;
+  if (props.round > MAX_ROUNDS) blocker = ROUND_LIMIT_MESSAGE;
   else if (!props.aiAvailable) blocker = "Drafting needs AI, which isn't set up on this server.";
   else if (props.stale) blocker = "The copy has changed since this check. Check it again first.";
   else if (report.guard.open > 0) blocker = "Replace the personal data, or override the match, first.";
@@ -204,9 +204,11 @@ function gateState(props: Props, report: Report) {
     blocker = `Give a reason for ${missingReason.length === 1 ? "the dismissed blocker or needs-fix finding" : `${missingReason.length} dismissed blocker or needs-fix findings`}.`;
   else if (accepted.length === 0) blocker = "Nothing to revise: every finding was dismissed.";
 
+  const lastRound = props.round === MAX_ROUNDS ? " This is the last revision for this check." : "";
   const hint = props.hasDraft
     ? "Your draft is waiting. Discard it to draft again with new decisions."
-    : (blocker ?? `Drafts fixes for the ${accepted.length} accepted ${accepted.length === 1 ? "finding" : "findings"}. Code checks the draft before you see it.`);
+    : (blocker ??
+      `Drafts fixes for the ${accepted.length} accepted ${accepted.length === 1 ? "finding" : "findings"}. Code checks the draft before you see it.${lastRound}`);
 
   return { applies, findings, decided, accepted, undecidedSuggestions, blocker, hint };
 }
@@ -321,7 +323,7 @@ export function ReportPanel(props: Props) {
       <strong>
         {gate.decided.length} of {gate.findings.length}
       </strong>{" "}
-      decided · Round {Math.min(props.round, MAX_ROUNDS)} of {MAX_ROUNDS}
+      decided · {props.round > MAX_ROUNDS ? `${MAX_ROUNDS} revisions` : `Round ${props.round}`}
     </p>
   );
 
@@ -388,6 +390,12 @@ export function ReportPanel(props: Props) {
           {progress}
         </div>
         {dismissed > 0 && <p className={styles.dismissedNote}>{dismissed} dismissed by the reviewer.</p>}
+        {props.history.length >= NUDGE_AFTER_ROUNDS && props.round <= MAX_ROUNDS && (
+          <p className={styles.roundNote}>
+            You&apos;ve revised this copy {props.history.length} times. Keep going if it helps, or edit it by hand if
+            that&apos;s quicker. Copy text and Download report are ready whenever you are.
+          </p>
+        )}
         <AiDetails report={report} />
       </div>
 

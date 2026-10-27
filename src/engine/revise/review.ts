@@ -4,7 +4,15 @@
 import type { Finding, Report } from "../engine";
 import type { Draft, ReviewDecision, RevisionChange } from "./types";
 
-export const MAX_ROUNDS = 3;
+/**
+ * Rounds are open-ended: the reviewer stops when they're happy with the copy. Every round needs
+ * their decisions and approval, so it can't run away; the real cost caps are the rate limit and
+ * the key's spend limit. This hard stop is only against misuse.
+ */
+export const MAX_ROUNDS = 10;
+/** After this many approved revisions, the page mentions it, without stopping anything. */
+export const NUDGE_AFTER_ROUNDS = 3;
+export const ROUND_LIMIT_MESSAGE = `You've revised this copy ${MAX_ROUNDS} times, the most for one check. Edit it by hand from here, or start a new check.`;
 
 const keyOf = (finding: Finding) => `${finding.ruleId}:${finding.match?.start ?? "-"}:${finding.match?.end ?? "-"}`;
 const squash = (text: string) => text.replace(/\s+/g, " ").trim();

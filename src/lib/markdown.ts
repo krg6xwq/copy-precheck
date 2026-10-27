@@ -105,7 +105,7 @@ export function reportToMarkdown(
     "# Copy pre-check report",
     "",
     `- Checked: ${time(checkedAt)}`,
-    ...(history.length ? [`- Review rounds: ${history.length} approved, now on round ${extras.round ?? history.length + 1}`] : []),
+    ...(history.length ? [`- Revisions approved: ${history.length}`] : []),
     `- Where it appears: ${report.context ? CONTEXT_LABELS[report.context] : "Not specified"}`,
     `- Rules: version ${report.rulesVersion}`,
     `- AI checks: ${aiLine(report)}`,

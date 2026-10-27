@@ -8,7 +8,7 @@
 import { useId, useRef, useState, type RefObject } from "react";
 import type { DiffPart, Region } from "@/engine/revise/diff";
 import type { Draft, Flag, NeedsInput } from "@/engine/revise/types";
-import { changeSource, MAX_ROUNDS, unfixedLabels } from "@/engine/revise/review";
+import { changeSource, unfixedLabels } from "@/engine/revise/review";
 import { SEVERITIES, SEVERITY_LABELS } from "@/lib/labels";
 import styles from "./checker.module.css";
 
@@ -243,7 +243,7 @@ export function DraftPanel(props: Props) {
               Draft revision
             </h2>
             <p className={styles.meta}>
-              Round {round} of {MAX_ROUNDS}
+              Round {round}
               {draft.model ? ` · Drafted by ${draft.model}` : ""} · Checked by code
             </p>
           </div>

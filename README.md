@@ -18,7 +18,7 @@ Copy is checked in three layers, in this order:
 2. The AI drafts a revision of the whole copy from those decisions: it fixes what was accepted, leaves dismissed words alone, and asks instead of guessing (for example, whether 05/11/2026 means May or November).
 3. Code checks the draft: facts kept, every change backed by an accepted finding, dismissed words untouched, nothing accepted left unfixed, length, and a full re-check. New personal data blocks approval.
 4. The reviewer answers any questions (code puts the answer in), keeps, undoes or edits anything flagged, and approves.
-5. The approved draft is checked again as the next round, with dismissals carried over. Up to three rounds. The downloaded report records every round.
+5. The approved draft is checked again as the next round, with dismissals carried over. Repeat until you're happy with the copy (after three revisions the page mentions it; ten is the most for one check). The downloaded report records every round.
 
 All rules live in one file, [`content/rules.yaml`](content/rules.yaml). The checker reads it, and the [style guide](content/style-guide.md) is generated from it, so the two can never disagree.
 

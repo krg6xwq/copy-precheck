@@ -12,7 +12,7 @@ import type { AcceptedItem, DismissedItem, Draft, DraftResult, NeedsInput, Revie
 import { decidable, needsReason } from "./review";
 import { occurrences, verifyDraft } from "./verify";
 
-export { carryDecisions, decidable, MAX_ROUNDS, needsReason, type CarriedDecision } from "./review";
+export { carryDecisions, decidable, MAX_ROUNDS, needsReason, ROUND_LIMIT_MESSAGE, type CarriedDecision } from "./review";
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 /** The decisions can't be used: not every finding decided, a missing reason, personal data open. */

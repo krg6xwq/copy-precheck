@@ -9,7 +9,7 @@ import { useRef, useState, useTransition } from "react";
 import type { Context, Finding, Override, Report } from "@/engine";
 import { checkAction, reviseAction, type ReviseInput } from "@/app/actions";
 import type { Sample } from "@/app/content";
-import { carryDecisions, changeSource, decidable, MAX_ROUNDS, unfixedLabels, type CarriedDecision } from "@/engine/revise/review";
+import { carryDecisions, changeSource, decidable, unfixedLabels, type CarriedDecision } from "@/engine/revise/review";
 import type { Draft, Flag, NeedsInput } from "@/engine/revise/types";
 import { findingKey, SEVERITY_LABELS, type Decision } from "@/lib/labels";
 import type { RoundSummary } from "@/lib/markdown";
@@ -208,7 +208,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
       text: report.text,
       context: report.context,
       overrides: result.overrides,
-      round: Math.min(round, MAX_ROUNDS),
+      round,
       aiFindings: report.findings
         .filter((f) => f.layer === "ai" && f.match)
         .map((f) => ({ ruleId: f.ruleId, start: f.match!.start, end: f.match!.end, detail: f.detail, suggestion: f.suggestion })),
@@ -356,7 +356,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
         <DraftPanel
           key={draft.text}
           draft={draft}
-          round={Math.min(round, MAX_ROUNDS)}
+          round={round}
           kept={kept}
           pending={isPending}
           error={draftError}
