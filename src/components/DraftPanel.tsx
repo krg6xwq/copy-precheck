@@ -141,7 +141,6 @@ interface FlagCardProps {
   pending: boolean;
   onKeep: (keep: boolean) => void;
   onUndo: () => void;
-  onEdit: () => void;
   onActivate: (on: boolean) => void;
   onLocate: () => void;
 }
@@ -173,7 +172,7 @@ function UndoneCard({ item }: { item: UndoneFlag }) {
   );
 }
 
-function FlagCard({ flag, kept, pending, onKeep, onUndo, onEdit, onActivate, onLocate }: FlagCardProps) {
+function FlagCard({ flag, kept, pending, onKeep, onUndo, onActivate, onLocate }: FlagCardProps) {
   return (
     <li
       className={`${styles.flag} ${kept ? styles.flagKept : ""} ${flag.region ? styles.flagLocatable : ""}`}
@@ -217,9 +216,6 @@ function FlagCard({ flag, kept, pending, onKeep, onUndo, onEdit, onActivate, onL
             Undo it
           </button>
         )}
-        <button type="button" className={styles.textButton} onClick={onEdit} disabled={pending}>
-          Edit the draft
-        </button>
       </div>
     </li>
   );
@@ -305,6 +301,13 @@ export function DraftPanel(props: Props) {
     setEditText(draft.text);
     setEditing(true);
   };
+  // In the header, next to Approve (and repeated at the bottom on phones). Hidden while editing,
+  // where the editor has its own "Check my edit" and "Cancel".
+  const editButton = !editing && (
+    <button type="button" className={styles.secondaryButton} onClick={startEditing} disabled={pending}>
+      Edit draft
+    </button>
+  );
 
   return (
     <section className={`${styles.card} ${styles.reportCard}`} aria-labelledby="draft-heading" aria-busy={pending}>
@@ -322,6 +325,7 @@ export function DraftPanel(props: Props) {
           <div className={styles.headerActions}>
             <div className={styles.buttonRow}>
               {approveButton("approve-reasons")}
+              {editButton}
               <button type="button" className={styles.secondaryButton} onClick={props.onBack}>
                 Back to findings
               </button>
@@ -415,7 +419,7 @@ export function DraftPanel(props: Props) {
           <h3 id="flags-heading" className={`${styles.groupTitle} ${styles["groupTitle-needs-fix"]}`}>
             Flags ({flagItems.length})
             <span className={styles.groupHint}>
-              {draft.flags.length ? "Code found these. Keep, undo or edit each one." : "All resolved."}
+              {draft.flags.length ? "Code found these. Keep or undo each one, or use Edit draft." : "All resolved."}
             </span>
           </h3>
           <ul className={styles.findings}>
@@ -430,7 +434,6 @@ export function DraftPanel(props: Props) {
                   pending={pending}
                   onKeep={(keep) => props.onKeep(item.flag, keep)}
                   onUndo={() => props.onUndo(item.flag)}
-                  onEdit={startEditing}
                   onActivate={(on) => setHoveredFlag(on ? item.flag.id : null)}
                   onLocate={() => locate(item.flag)}
                 />
@@ -451,7 +454,7 @@ export function DraftPanel(props: Props) {
               <li key={label}>{label}</li>
             ))}
           </ul>
-          <p className={styles.hint}>Edit the draft to fix them, discard it and draft again, or approve and they&apos;ll be found again next round.</p>
+          <p className={styles.hint}>Use Edit draft to fix them, discard the draft and draft again, or approve and they&apos;ll be found again next round.</p>
         </section>
       )}
 
@@ -526,11 +529,7 @@ export function DraftPanel(props: Props) {
       <div className={styles.draftActions}>
         {/* Phone widths only: the header isn't sticky there. */}
         <span className={styles.mobileOnly}>{approveButton("approve-reasons")}</span>
-        {!editing && (
-          <button type="button" className={styles.secondaryButton} onClick={startEditing} disabled={pending}>
-            Edit draft
-          </button>
-        )}
+        <span className={styles.mobileOnly}>{editButton}</span>
         <button type="button" className={styles.textButton} onClick={props.onDiscard} disabled={pending}>
           Discard draft
         </button>

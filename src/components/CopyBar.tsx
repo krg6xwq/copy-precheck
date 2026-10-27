@@ -49,11 +49,12 @@ export function CopyBar(props: Props) {
     setMode("edit");
   }
 
-  // The page's main heading, kept in every state.
+  // Names the section for screen readers. (The page's main heading is in the workspace, so it's
+  // there on the draft page too, where this bar is hidden.)
   const heading = (
-    <h1 id="copy-bar-heading" className="visually-hidden">
-      Check copy
-    </h1>
+    <h2 id="copy-bar-heading" className="visually-hidden">
+      Copy being reviewed
+    </h2>
   );
 
   if (mode === "edit" && !props.confirming && props.editable) {

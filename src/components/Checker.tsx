@@ -472,6 +472,10 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
 
   return (
     <div className={styles.layoutSingle}>
+      <h1 className="visually-hidden">Check copy</h1>
+      {/* Not on the draft page, where the draft shows the copy; it appears there only to ask before a
+          new check, or to show an error from the check after approving. */}
+      {(!draftVisible || confirmingNew || error) && (
       <CopyBar
         // A new check result resets the bar (closing the editor after a successful edit).
         key={result.checkedAt.getTime()}
@@ -488,6 +492,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
         onCancelNewCheck={() => setConfirmingNew(false)}
         onDownload={() => downloadReport(result.report, decisions, result.checkedAt, markdownExtras)}
       />
+      )}
       {draftVisible ? (
         <DraftPanel
           key={draft.text}
