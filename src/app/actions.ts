@@ -41,7 +41,6 @@ const Input = z.object({
   text: Copy,
   context: z.enum(CONTEXTS).optional(),
   overrides: Overrides,
-  useAi: z.boolean().default(false),
 });
 
 export type CheckInput = z.input<typeof Input>;
@@ -58,9 +57,10 @@ export async function checkAction(input: CheckInput): Promise<CheckResult> {
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "That input couldn't be checked" };
   }
-  const { text, context, overrides, useAi } = parsed.data;
+  const { text, context, overrides } = parsed.data;
 
-  let model = useAi ? claudeFromEnv() : undefined;
+  // The AI checks always run when a key is set up. The personal-data guard still decides whether the copy may be sent.
+  let model = claudeFromEnv();
   let note: string | undefined;
   if (model && !allowAiCheck(await visitorId())) {
     model = undefined;

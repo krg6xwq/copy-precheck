@@ -12,8 +12,6 @@ interface Props {
   onTextChange: (text: string) => void;
   context: Context | "";
   onContextChange: (context: Context | "") => void;
-  useAi: boolean;
-  onUseAiChange: (useAi: boolean) => void;
   aiAvailable: boolean;
   maxLength: number;
   pending: boolean;
@@ -27,9 +25,9 @@ interface Props {
 const truncate = (text: string, length: number) => (text.length > length ? `${text.slice(0, length - 1)}…` : text);
 
 export function InputPanel({ copyRef, onCancel, ...props }: Props) {
-  const { samples, text, context, useAi, aiAvailable, maxLength, pending, error } = props;
+  const { samples, text, context, aiAvailable, maxLength, pending, error } = props;
   const [sampleId, setSampleId] = useState("");
-  const ids = { sample: useId(), context: useId(), copy: useId(), count: useId(), ai: useId(), aiHint: useId() };
+  const ids = { sample: useId(), context: useId(), copy: useId(), count: useId() };
   const remaining = maxLength - text.length;
 
   function loadSample(id: string) {
@@ -129,29 +127,10 @@ export function InputPanel({ copyRef, onCancel, ...props }: Props) {
 
         <div className={styles.notice} role="note">
           <strong>Never paste real customer data.</strong> Use placeholders such as{" "}
-          <code>{"{name}"}</code>, <code>{"{nric}"}</code> or <code>{"{phone}"}</code>.
-        </div>
-
-        <div className={styles.checkboxRow}>
-          <input
-            id={ids.ai}
-            type="checkbox"
-            className={styles.checkbox}
-            checked={aiAvailable && useAi}
-            disabled={!aiAvailable}
-            aria-describedby={ids.aiHint}
-            onChange={(event) => props.onUseAiChange(event.target.checked)}
-          />
-          <div>
-            <label htmlFor={ids.ai} className={styles.checkboxLabel}>
-              Include AI checks
-            </label>
-            <p id={ids.aiHint} className={styles.hint}>
-              {aiAvailable
-                ? "Sent to Claude only after the personal-data check passes. AI findings are suggestions."
-                : "AI checks aren't set up on this server. The rule checks still run."}
-            </p>
-          </div>
+          <code>{"{name}"}</code>, <code>{"{nric}"}</code> or <code>{"{phone}"}</code>.{" "}
+          {aiAvailable
+            ? "The copy is sent to Claude for the AI checks only after the personal-data check passes."
+            : "AI checks aren't set up on this server, so only the rule checks run."}
         </div>
 
         {error && (

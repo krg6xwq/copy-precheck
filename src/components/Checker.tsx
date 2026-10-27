@@ -22,7 +22,6 @@ import styles from "./checker.module.css";
 export interface CheckedInput {
   text: string;
   context: Context | "";
-  useAi: boolean;
 }
 
 export interface Result {
@@ -64,7 +63,6 @@ interface PastDecision {
 export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLength }: Props) {
   const [text, setText] = useState("");
   const [context, setContext] = useState<Context | "">("");
-  const [useAi, setUseAi] = useState(aiAvailable);
   const [result, setResult] = useState<Result | null>(null);
   const [decisions, setDecisions] = useState<Record<string, Decision>>({});
   const [comments, setComments] = useState<Record<string, string>>({});
@@ -109,7 +107,6 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
           text: input.text,
           context: input.context || undefined,
           overrides,
-          useAi: input.useAi,
         });
       } catch {
         setError("Couldn't reach the server. Refresh the page and try again.");
@@ -153,7 +150,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
 
   const stale =
     result !== null &&
-    (result.input.text !== text.trim() || result.input.context !== context || result.input.useAi !== useAi);
+    (result.input.text !== text.trim() || result.input.context !== context);
 
   function setDecision(finding: Finding, decision: Decision | undefined) {
     setDecisions((current) => {
@@ -313,7 +310,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
     setRound((current) => current + 1);
     setText(nextText);
     clearDraft();
-    run({ text: nextText, context: result.input.context, useAi: result.input.useAi }, nextOverrides, "next-round", nextPast);
+    run({ text: nextText, context: result.input.context }, nextOverrides, "next-round", nextPast);
   }
 
   const draftVisible = draft !== null && showDraft;
@@ -323,7 +320,6 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
     if (!result) return;
     setText(result.input.text);
     setContext(result.input.context);
-    setUseAi(result.input.useAi);
     setError(null);
     setEditing(false);
     focus(draftVisible ? draftHeading : resultsHeading);
@@ -334,7 +330,6 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
       {collapsed ? (
         <CopyBar
           input={result.input}
-          aiAvailable={aiAvailable}
           pending={isPending}
           onEdit={() => {
             setEditing(true);
@@ -348,13 +343,11 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
           onTextChange={setText}
           context={context}
           onContextChange={setContext}
-          useAi={useAi}
-          onUseAiChange={setUseAi}
           aiAvailable={aiAvailable}
           maxLength={maxLength}
           pending={isPending}
           error={error}
-          onSubmit={() => run({ text: text.trim(), context, useAi }, [], "new")}
+          onSubmit={() => run({ text: text.trim(), context }, [], "new")}
           onCancel={result ? cancelEditing : undefined}
           copyRef={copyField}
         />

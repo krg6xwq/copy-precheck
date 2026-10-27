@@ -153,24 +153,8 @@
   border-radius: var(--radius-sm);
 }
 
-.checkboxRow {
-  display: flex;
-  gap: var(--space-3);
-  align-items: flex-start;
-}
 
-.checkbox {
-  width: 18px;
-  height: 18px;
-  margin-top: 3px;
-  accent-color: var(--color-action);
-  flex: none;
-}
 
-.checkboxLabel {
-  font-size: var(--text-sm);
-  font-weight: 600;
-}
 
 .error {
   font-size: var(--text-sm);

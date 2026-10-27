@@ -9,12 +9,11 @@ import styles from "./checker.module.css";
 
 interface Props {
   input: CheckedInput;
-  aiAvailable: boolean;
   pending: boolean;
   onEdit: () => void;
 }
 
-export function CopyBar({ input, aiAvailable, pending, onEdit }: Props) {
+export function CopyBar({ input, pending, onEdit }: Props) {
   const preview = input.text.replace(/\s+/g, " ").trim();
   return (
     <section className={`${styles.card} ${styles.copyBar}`} aria-labelledby="copy-bar-heading">
@@ -29,8 +28,7 @@ export function CopyBar({ input, aiAvailable, pending, onEdit }: Props) {
         </p>
         <p className={styles.meta}>
           {input.text.length.toLocaleString("en-SG")} characters ·{" "}
-          {input.context ? CONTEXT_LABELS[input.context] : "Context not specified"} ·{" "}
-          {aiAvailable && input.useAi ? "AI checks on" : "AI checks off"}
+          {input.context ? CONTEXT_LABELS[input.context] : "Context not specified"}
         </p>
       </div>
       {pending ? (

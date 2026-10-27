@@ -21,11 +21,11 @@ export function AiMeta({ report }: { report: Report }) {
         </>
       );
     case "blocked":
-      return <>AI paused</>;
     case "unavailable":
-      return <>AI unavailable</>;
+      return <>AI {ai.status === "blocked" ? "paused" : "unavailable"}</>;
     default:
-      return <>AI off</>;
+      // Not run: either no key on this server, or paused by the rate limit (which gives a reason).
+      return <>{ai.reason && ai.reason !== DEFAULT_NOT_RUN ? "AI paused" : "AI not set up"}</>;
   }
 }
 
@@ -47,15 +47,19 @@ export function AiBanner({ report }: { report: Report }) {
       </div>
     );
   }
+  if (ai.status === "not-run" && ai.reason && ai.reason !== DEFAULT_NOT_RUN) {
+    return (
+      <div className={`${styles.aiStatus} ${styles.aiWarning}`} role="note">
+        <strong>AI checks paused.</strong> {ai.reason}
+      </div>
+    );
+  }
   return null;
 }
 
-/** Quiet details for the summary: AI notes merged into rule findings, findings discarded, or why AI didn't run. */
+/** Quiet details for the summary: AI notes merged into rule findings, and findings discarded. */
 export function AiDetails({ report }: { report: Report }) {
   const { ai } = report;
-  if (ai.status === "not-run") {
-    return ai.reason && ai.reason !== DEFAULT_NOT_RUN ? <p className={styles.dismissedNote}>{ai.reason}</p> : null;
-  }
   if (ai.status !== "done" || (ai.merged === 0 && ai.rejected.length === 0)) return null;
   return (
     <div className={styles.aiDetails}>
