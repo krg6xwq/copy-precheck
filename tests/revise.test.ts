@@ -178,6 +178,22 @@ describe("drafts built to break the safeguards", () => {
     expect(draft.flags.filter((f) => f.kind === "changed-fact").map((f) => f.id)).toEqual(["fact-new:date:05/11/2026#1"]);
   });
 
+  it("places a repeated fact where it was added, so Undo can take it out", async () => {
+    // Kurt's case: "{hotline}" was in the original once, near the end, and the draft added another
+    // mention earlier on. The later mention is the unchanged one; the flag must point at the added
+    // one, or it has no Undo. Here the repeated fact is "3.5%", added before the original mention.
+    const answer = goodAnswer();
+    answer.revisedText = `Earn 3.5% with us. ${GOOD_TEXT}`;
+    answer.changes.push({ finding: ref("DC-001"), before: "", after: "Earn 3.5% with us." });
+    let draft = await draftWith(answer);
+    const flag = draft.flags.find((f) => f.id === "fact-new:number:3.5#1");
+    expect(flag?.region).toBeDefined();
+    expect(draft.text.slice(flag!.region!.draftStart, flag!.region!.draftEnd)).toContain("Earn 3.5% with us");
+    draft = undoFlag(draft, flag!.id, ctx);
+    expect(draft.text).not.toContain("Earn 3.5% with us");
+    expect(draft.flags.some((f) => f.id === flag!.id)).toBe(false);
+  });
+
   it("drops a reported change that changes nothing", async () => {
     const answer = goodAnswer();
     answer.changes.push({ finding: ref("DC-002"), before: "from $500 a month", after: "from $500  a month" });

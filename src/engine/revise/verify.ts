@@ -115,8 +115,23 @@ export function verifyDraft(input: VerifyInput): Draft {
     seen.set(key, n);
     return n;
   };
+  // Which mention of a fact is the missing or extra one? Counting can't tell, so pick a mention inside a
+  // changed part of the text: that's where the change is, and where Undo and "Show in draft" point.
+  // (Taking the first mention could pick the unchanged one, leaving the flag with no place at all.)
+  const used = new Set<Fact>();
+  const place = (fact: Fact, pool: Fact[], side: "orig" | "draft") => {
+    const same = pool.filter((f) => f.kind === fact.kind && f.value === fact.value && !used.has(f));
+    for (const candidate of same) {
+      const region = regions.find((r) => regionHas(r, side, candidate.start));
+      if (region) {
+        used.add(candidate);
+        return region;
+      }
+    }
+    return undefined;
+  };
   for (const fact of missingFacts(before, after)) {
-    const region = regions.find((r) => regionHas(r, "orig", fact.start));
+    const region = place(fact, before, "orig");
     flags.push({
       id: `fact-missing:${fact.kind}:${fact.value}#${nth(`m:${fact.kind}:${fact.value}`)}`,
       kind: "changed-fact",
@@ -127,7 +142,7 @@ export function verifyDraft(input: VerifyInput): Draft {
     });
   }
   for (const fact of missingFacts(after, before)) {
-    const region = regions.find((r) => regionHas(r, "draft", fact.start));
+    const region = place(fact, after, "draft");
     // A repeat isn't a new fact, but it can be a new claim ("3.5% bonus"), so it's still flagged.
     const repeated = before.some((b) => b.kind === fact.kind && b.value === fact.value);
     flags.push({
