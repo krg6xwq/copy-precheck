@@ -46,7 +46,7 @@ The reviewer's decisions are your instructions. You don't decide what to fix.
 
 How to revise:
 - Fix every accepted finding (F1, F2…), following its fix and the reviewer's comment.
-- Leave dismissed findings exactly as they are.
+- Don't fix dismissed findings: the reviewer decided that problem is fine. A dismissal is about that problem only. If an accepted finding sits inside a dismissed one (say, a word to fix inside a sentence dismissed as too long), make the accepted fix and leave the rest of the dismissed words as they are.
 - Change nothing else. Words not covered by an accepted finding stay exactly as written, including punctuation.
 - Keep every number, percentage, amount, date, placeholder such as {name}, product name, email address and link exactly as written, unless an accepted finding is about that exact text.
 - When a finding is a claim that mustn't be made (no risk, guaranteed returns, scam-like urgency), remove it or replace it with a plain fact already in the copy. Never restate the same claim in other words: "protected from loss" is still "risk-free".
@@ -77,9 +77,15 @@ function describeAccepted(item: AcceptedItem): string {
   return lines.join("\n");
 }
 
-function describeDismissed(item: DismissedItem): string {
+function describeDismissed(item: DismissedItem, accepted: AcceptedItem[]): string {
   const f = item.finding;
-  return `- ${f.ruleId} ${f.ruleName}${f.match ? `: "${f.match.text}"` : ""} (do not change)`;
+  const m = f.match;
+  // Accepted findings inside these words still apply; say which, so the two instructions don't clash.
+  const inside = m ? accepted.filter((a) => a.finding.match && a.finding.match.start < m.end && m.start < a.finding.match.end) : [];
+  const note = inside.length
+    ? `don't fix this; leave these words as they are, except for the accepted ${inside.map((a) => a.ref).join(", ")} inside them`
+    : "do not change";
+  return `- ${f.ruleId} ${f.ruleName}${m ? `: "${m.text}"` : ""} (${note})`;
 }
 
 export function buildRevisionPrompt(input: {
@@ -97,8 +103,8 @@ export function buildRevisionPrompt(input: {
     "Accepted findings (fix these):",
     input.accepted.map(describeAccepted).join("\n"),
     "",
-    "Dismissed findings (leave these words as they are):",
-    input.dismissed.length ? input.dismissed.map(describeDismissed).join("\n") : "None.",
+    "Dismissed findings (don't fix these):",
+    input.dismissed.length ? input.dismissed.map((item) => describeDismissed(item, input.accepted)).join("\n") : "None.",
     "",
     ...(input.skipped?.length
       ? [`A previous draft skipped ${input.skipped.join(", ")}. Fix every accepted finding, or ask in needsInput.`, ""]

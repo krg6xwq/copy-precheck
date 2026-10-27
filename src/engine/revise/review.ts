@@ -30,13 +30,13 @@ export function changeSource(draft: Pick<Draft, "accepted">, change: RevisionCha
   return [change.ref, ...(change.also ?? [])].map(name).join(" + ");
 }
 
-/** Accepted findings the draft left alone, named for people. */
+/** Accepted findings the draft left alone, named for people, with their words in full (never cut off). */
 export const unfixedLabels = (draft: Pick<Draft, "accepted" | "unfixed">) =>
   draft.unfixed.map((ref) => {
     const item = draft.accepted.find((a) => a.ref === ref);
     if (!item) return ref;
     const words = item.finding.match?.text.replace(/\s+/g, " ").trim();
-    return `${item.finding.ruleId} ${item.finding.ruleName}${words ? ` “${words.length > 60 ? `${words.slice(0, 59)}…` : words}”` : ""}`;
+    return `${item.finding.ruleId} ${item.finding.ruleName}${words ? ` “${words}”` : ""}`;
   });
 
 /** A dismissal of a serious finding needs a reason (spec: decisions and comments). */

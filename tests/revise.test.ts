@@ -242,6 +242,14 @@ describe("drafts built to break the safeguards", () => {
       expect(decidable(longReport).map((f) => f.ruleId).sort()).toEqual(["PL-001", "TM-001"]);
     });
 
+    it("tells the AI the dismissal doesn't block the accepted fix inside it", async () => {
+      const model = fakeModel({ revisedText: LONG.replace("login to", "log in to"), changes: [{ finding: "F1", before: "login to", after: "log in to" }], needsInput: [] });
+      await draftRevision(longReport, rules, model, longDecisions);
+      const { system, user } = model.calls[0];
+      expect(user).toContain("(don't fix this; leave these words as they are, except for the accepted F1 inside them)");
+      expect(system).toContain("make the accepted fix and leave the rest of the dismissed words as they are");
+    });
+
     it("lets the accepted fix through without a flag", async () => {
       expect((await draftOf(LONG.replace("login to", "log in to"))).flags).toEqual([]);
     });
