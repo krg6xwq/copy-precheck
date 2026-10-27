@@ -5,7 +5,7 @@
 // current round, the draft, and earlier rounds). All checking and drafting
 // happens on the server (checkAction, reviseAction).
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import type { Context, Finding, Override, Report } from "@/engine";
 import { checkAction, reviseAction, type ReviseInput } from "@/app/actions";
 import type { Sample } from "@/app/content";
@@ -86,6 +86,8 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
   const [showDraft, setShowDraft] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
   const draftsUsed = history.filter((summary) => summary.kind !== "hand").length;
+  // The header logo was clicked with rounds to lose; the copy bar asks before clearing.
+  const [confirmingNew, setConfirmingNew] = useState(false);
 
   // Moves focus to a panel's heading and brings the panel's top into view. The heading sits in a
   // sticky header, so focusing it alone wouldn't scroll: switching from the bottom of the findings
@@ -371,8 +373,40 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
     });
   }
 
+  /** The header logo: start over, asking first when there are rounds to lose. */
+  function requestNewCheck() {
+    if (!result) return;
+    if (history.length > 0) {
+      setConfirmingNew(true);
+      window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    } else {
+      newCheck();
+    }
+  }
+
+  // The logo lives in the page layout, outside this component, so its clicks are caught here, in
+  // the capture phase, before the logo's Link navigates. A ref keeps the handler current without
+  // re-adding the listener on every render.
+  const homeHandler = useRef(requestNewCheck);
+  useEffect(() => {
+    homeHandler.current = requestNewCheck;
+  });
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      // Opening the logo in a new tab still works as a normal link.
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (!(event.target instanceof Element) || !event.target.closest("[data-home-link]")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      homeHandler.current();
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
+
   /** Back to the start page with the latest copy in the form. Everything else is cleared. */
   function newCheck() {
+    setConfirmingNew(false);
     if (result) {
       setText(result.input.text);
       setContext(result.input.context);
@@ -427,8 +461,10 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
         maxLength={maxLength}
         hasDraft={draft !== null}
         rounds={history.length}
+        confirming={confirmingNew}
         onCheckEdit={checkEdit}
         onNewCheck={newCheck}
+        onCancelNewCheck={() => setConfirmingNew(false)}
         onDownload={() => downloadReport(result.report, decisions, result.checkedAt, markdownExtras)}
       />
       {draftVisible ? (

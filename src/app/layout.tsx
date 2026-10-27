@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import styles from "./layout.module.css";
 import "./globals.css";
 
@@ -26,12 +27,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <header className={styles.header}>
           <div className={styles.headerInner}>
-            <div className={styles.brand}>
+            {/* Starts a new check. The checker catches the click (before Link navigates) to ask first
+                when there are rounds to lose; without JavaScript it simply loads the start page. */}
+            <Link href="/" className={styles.brand} data-home-link>
               <BrandMark />
               <span className={styles.bank}>Tembusu Bank</span>
               <span className={styles.divider} aria-hidden="true" />
               <span className={styles.product}>Copy pre-check</span>
-            </div>
+              <span className="visually-hidden"> (start a new check)</span>
+            </Link>
             <p className={styles.badge}>Internal tool · Fictional bank</p>
           </div>
         </header>

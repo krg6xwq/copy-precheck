@@ -3,8 +3,8 @@
 // The copy being reviewed, above the results. Two different jobs live here:
 // - Edit copy: change the words yourself and carry on. The edit is checked as the next round,
 //   so earlier rounds and dismissals are kept, and the report records the edit.
-// - New check: start over with different copy. Clears everything, so it asks first when
-//   there are rounds to lose, and offers the report.
+// - Starting over (the header logo): clears everything, so it asks here first when there are
+//   rounds to lose, and offers the report.
 
 import { useId, useState } from "react";
 import type { Context } from "@/engine";
@@ -21,14 +21,17 @@ interface Props {
   hasDraft: boolean;
   /** Rounds recorded so far (AI drafts and hand edits), lost by a new check. */
   rounds: number;
+  /** The logo was clicked with rounds to lose: ask before clearing. */
+  confirming: boolean;
   onCheckEdit: (text: string, context: Context | "") => void;
   onNewCheck: () => void;
+  onCancelNewCheck: () => void;
   onDownload: () => void;
 }
 
 export function CopyBar(props: Props) {
   const { input, pending, error, maxLength } = props;
-  const [mode, setMode] = useState<"view" | "edit" | "confirm">("view");
+  const [mode, setMode] = useState<"view" | "edit">("view");
   const [text, setText] = useState(input.text);
   const [context, setContext] = useState<Context | "">(input.context);
   const ids = { copy: useId(), count: useId(), context: useId(), confirm: useId() };
@@ -41,11 +44,6 @@ export function CopyBar(props: Props) {
     setMode("edit");
   }
 
-  function newCheck() {
-    if (props.rounds > 0) setMode("confirm");
-    else props.onNewCheck();
-  }
-
   // The page's main heading, kept in every state.
   const heading = (
     <h1 id="copy-bar-heading" className="visually-hidden">
@@ -53,7 +51,7 @@ export function CopyBar(props: Props) {
     </h1>
   );
 
-  if (mode === "edit") {
+  if (mode === "edit" && !props.confirming) {
     return (
       <section className={`${styles.card} ${styles.copyEditor}`} aria-labelledby="copy-bar-heading" aria-busy={pending}>
         {heading}
@@ -152,15 +150,10 @@ export function CopyBar(props: Props) {
             <span className={`${styles.spinner} ${styles.spinnerOnLight}`} aria-hidden="true" /> Checking…
           </p>
         ) : (
-          mode === "view" && (
-            <div className={styles.buttonRow}>
-              <button type="button" className={styles.secondaryButton} onClick={openEditor}>
-                Edit copy
-              </button>
-              <button type="button" className={styles.textButton} onClick={newCheck}>
-                New check
-              </button>
-            </div>
+          !props.confirming && (
+            <button type="button" className={styles.secondaryButton} onClick={openEditor}>
+              Edit copy
+            </button>
           )
         )}
       </div>
@@ -171,7 +164,7 @@ export function CopyBar(props: Props) {
         </p>
       )}
 
-      {mode === "confirm" && (
+      {props.confirming && (
         <div className={styles.confirm} role="group" aria-labelledby={ids.confirm}>
           <p id={ids.confirm}>
             <strong>Start a new check?</strong> This clears {props.rounds} {props.rounds === 1 ? "round" : "rounds"} and
@@ -185,7 +178,7 @@ export function CopyBar(props: Props) {
             <button type="button" className={styles.secondaryButton} onClick={props.onNewCheck}>
               Clear and start over
             </button>
-            <button type="button" className={styles.textButton} onClick={() => setMode("view")}>
+            <button type="button" className={styles.textButton} onClick={props.onCancelNewCheck}>
               Cancel
             </button>
           </div>
