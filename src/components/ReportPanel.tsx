@@ -14,7 +14,7 @@ import {
   type Decision,
 } from "@/lib/labels";
 import { reportToMarkdown, type MarkdownExtras, type RoundSummary } from "@/lib/markdown";
-import { AiStatus } from "./AiStatus";
+import { AiBanner, AiDetails, AiMeta } from "./AiStatus";
 import type { Result } from "./Checker";
 import { FindingCard } from "./FindingCard";
 import { HighlightedCopy } from "./HighlightedCopy";
@@ -149,26 +149,31 @@ interface FindingGroupProps {
   titleClassName?: string;
   expanded: boolean;
   onToggle: () => void;
+  /** A button for the whole group, such as "Dismiss remaining suggestions". */
+  action?: ReactNode;
   children: ReactNode;
 }
 
-function FindingGroup({ id, title, hint, titleClassName = "", expanded, onToggle, children }: FindingGroupProps) {
+function FindingGroup({ id, title, hint, titleClassName = "", expanded, onToggle, action, children }: FindingGroupProps) {
   return (
     <section className={styles.group} aria-labelledby={`group-${id}`}>
-      <h3 className={`${styles.groupTitle} ${titleClassName}`}>
-        <button
-          type="button"
-          id={`group-${id}`}
-          className={styles.groupToggle}
-          aria-expanded={expanded}
-          aria-controls={`group-${id}-list`}
-          onClick={onToggle}
-        >
-          <span className={`${styles.chevron} ${expanded ? styles.chevronOpen : ""}`} aria-hidden="true" />
-          {title}
-        </button>
-        <span className={styles.groupHint}>{hint}</span>
-      </h3>
+      <div className={`${styles.groupHead} ${titleClassName}`}>
+        <h3 className={styles.groupHeading}>
+          <button
+            type="button"
+            id={`group-${id}`}
+            className={styles.groupToggle}
+            aria-expanded={expanded}
+            aria-controls={`group-${id}-list`}
+            onClick={onToggle}
+          >
+            <span className={`${styles.chevron} ${expanded ? styles.chevronOpen : ""}`} aria-hidden="true" />
+            {title}
+          </button>
+          <span className={styles.groupHint}>{hint}</span>
+        </h3>
+        {action}
+      </div>
       <ul id={`group-${id}-list`} className={styles.findings} hidden={!expanded}>
         {children}
       </ul>
@@ -176,85 +181,54 @@ function FindingGroup({ id, title, hint, titleClassName = "", expanded, onToggle
   );
 }
 
-interface GateProps {
-  report: Report;
-  decisions: Record<string, Decision>;
-  comments: Record<string, string>;
-  round: number;
-  aiAvailable: boolean;
-  stale: boolean;
-  pending: boolean;
-  hasDraft: boolean;
-  draftError: string | null;
-  onDraft: () => void;
-  onShowDraft: () => void;
-  onDismissSuggestions: () => void;
-}
-
-/** The progress line and the "Draft a revision" gate (spec: screens and states, step 1). */
-function RevisionGate(props: GateProps) {
-  const { report, decisions, comments } = props;
+/** Where the reviewer is in the loop, and whether "Draft a revision" can be pressed (spec: screens and states, step 1). */
+function gateState(props: Props, report: Report) {
+  const { decisions, comments } = props;
   const findings = decidable(report);
-  if (findings.length === 0 && report.guard.open === 0) return null;
   const decided = findings.filter((f) => decisions[findingKey(f)]);
+  const accepted = findings.filter((f) => decisions[findingKey(f)] === "accepted");
+  const undecidedSuggestions = findings.filter((f) => f.severity === "suggestion" && !decisions[findingKey(f)]);
   const missingReason = findings.filter(
     (f) => decisions[findingKey(f)] === "dismissed" && needsReason(f) && !comments[findingKey(f)]?.trim(),
   );
-  const accepted = findings.filter((f) => decisions[findingKey(f)] === "accepted");
-  const undecidedSuggestions = findings.filter((f) => f.severity === "suggestion" && !decisions[findingKey(f)]);
+  // Nothing to decide and nothing to fix: the loop doesn't apply.
+  const applies = findings.length > 0 || report.guard.open > 0;
 
   let blocker: string | null = null;
   if (props.round > MAX_ROUNDS) blocker = `That was round ${MAX_ROUNDS}, the last one. Edit the copy by hand from here.`;
   else if (!props.aiAvailable) blocker = "Drafting needs AI, which isn't set up on this server.";
   else if (props.stale) blocker = "The copy has changed since this check. Check it again first.";
-  else if (report.guard.open > 0) blocker = "Replace the personal data with a placeholder, or override the match, first.";
+  else if (report.guard.open > 0) blocker = "Replace the personal data, or override the match, first.";
   else if (decided.length < findings.length) blocker = `Decide on every finding first: ${findings.length - decided.length} left.`;
-  else if (missingReason.length) blocker = `Give a reason for ${missingReason.length === 1 ? "the dismissed blocker or needs-fix finding" : `${missingReason.length} dismissed blocker or needs-fix findings`}.`;
-  else if (accepted.length === 0) blocker = "Nothing to revise: every finding was dismissed. Download the report when you're ready.";
+  else if (missingReason.length)
+    blocker = `Give a reason for ${missingReason.length === 1 ? "the dismissed blocker or needs-fix finding" : `${missingReason.length} dismissed blocker or needs-fix findings`}.`;
+  else if (accepted.length === 0) blocker = "Nothing to revise: every finding was dismissed.";
 
+  const hint = props.hasDraft
+    ? "Your draft is waiting. Discard it to draft again with new decisions."
+    : (blocker ?? `Drafts fixes for the ${accepted.length} accepted ${accepted.length === 1 ? "finding" : "findings"}. Code checks the draft before you see it.`);
+
+  return { applies, findings, decided, accepted, undecidedSuggestions, blocker, hint };
+}
+
+function DraftButton({ props, gate, describedBy }: { props: Props; gate: ReturnType<typeof gateState>; describedBy?: string }) {
+  if (props.hasDraft) {
+    return (
+      <button type="button" className={styles.primaryButtonSmall} onClick={props.onShowDraft} aria-describedby={describedBy}>
+        Back to the draft
+      </button>
+    );
+  }
   return (
-    <div className={styles.gate}>
-      <div className={styles.gateRow}>
-        <p className={styles.gateProgress}>
-          <strong>
-            {decided.length} of {findings.length}
-          </strong>{" "}
-          findings decided · Round {Math.min(props.round, MAX_ROUNDS)} of {MAX_ROUNDS}
-        </p>
-        {undecidedSuggestions.length > 0 && (
-          <button type="button" className={styles.textButton} onClick={props.onDismissSuggestions} disabled={props.pending}>
-            Dismiss remaining suggestions ({undecidedSuggestions.length})
-          </button>
-        )}
-      </div>
-      <div className={styles.gateRow}>
-        {props.hasDraft ? (
-          <button type="button" className={styles.primaryButtonSmall} onClick={props.onShowDraft}>
-            Back to the draft
-          </button>
-        ) : (
-          <button
-            type="button"
-            className={styles.primaryButtonSmall}
-            disabled={props.pending || blocker !== null}
-            aria-describedby="gate-reason"
-            onClick={props.onDraft}
-          >
-            {accepted.length === 0 && blocker?.startsWith("Nothing") ? "Nothing to revise" : "Draft a revision"}
-          </button>
-        )}
-        <p id="gate-reason" className={styles.hint}>
-          {props.hasDraft
-            ? "Your draft is waiting. Changing decisions now won't change it; discard it to draft again."
-            : (blocker ?? `The AI drafts fixes for the ${accepted.length} accepted ${accepted.length === 1 ? "finding" : "findings"}; code checks the draft before you see it.`)}
-        </p>
-      </div>
-      {props.draftError && (
-        <p className={styles.error} role="alert">
-          Couldn&apos;t draft a revision: {props.draftError}.
-        </p>
-      )}
-    </div>
+    <button
+      type="button"
+      className={styles.primaryButtonSmall}
+      disabled={props.pending || gate.blocker !== null}
+      aria-describedby={describedBy}
+      onClick={props.onDraft}
+    >
+      {gate.accepted.length === 0 && gate.blocker?.startsWith("Nothing") ? "Nothing to revise" : "Draft a revision"}
+    </button>
   );
 }
 
@@ -341,24 +315,54 @@ export function ReportPanel(props: Props) {
     />
   );
 
+  const gate = gateState(props, report);
+  const progress = gate.applies && (
+    <p className={styles.progress}>
+      <strong>
+        {gate.decided.length} of {gate.findings.length}
+      </strong>{" "}
+      decided · Round {Math.min(props.round, MAX_ROUNDS)} of {MAX_ROUNDS}
+    </p>
+  );
+
   return (
     <section className={`${styles.card} ${styles.reportCard}`} aria-labelledby="results-heading" aria-busy={pending}>
-      <div className={styles.reportHeader}>
-        <div>
-          <h2 id="results-heading" className={styles.cardTitle} tabIndex={-1} ref={headingRef}>
-            Results
-          </h2>
-          <p className={styles.meta}>
-            {report.context ? CONTEXT_LABELS[report.context] : "Context not specified"} · Rules v{report.rulesVersion}
-          </p>
+      {/* Sticky, so the next step is in reach after deciding the last finding at the bottom of the list. */}
+      <div className={styles.stickyHeader}>
+        <div className={styles.reportHeader}>
+          <div>
+            <h2 id="results-heading" className={styles.cardTitle} tabIndex={-1} ref={headingRef}>
+              Results
+            </h2>
+            <p className={styles.meta}>
+              {report.context ? CONTEXT_LABELS[report.context] : "Context not specified"} · Rules v{report.rulesVersion} ·{" "}
+              <AiMeta report={report} />
+            </p>
+          </div>
+          <div className={styles.headerActions}>
+            <div className={styles.buttonRow}>
+              {gate.applies && <DraftButton props={props} gate={gate} describedBy="gate-reason" />}
+              <Export
+                report={report}
+                decisions={decisions}
+                checkedAt={result.checkedAt}
+                extras={{ comments: props.comments, round: props.round, history: props.history }}
+              />
+            </div>
+            {gate.applies && (
+              <p id="gate-reason" className={styles.headerHint}>
+                {gate.hint}
+              </p>
+            )}
+          </div>
         </div>
-        <Export
-          report={report}
-          decisions={decisions}
-          checkedAt={result.checkedAt}
-          extras={{ comments: props.comments, round: props.round, history: props.history }}
-        />
       </div>
+
+      {props.draftError && (
+        <p className={styles.error} role="alert">
+          Couldn&apos;t draft a revision: {props.draftError}.
+        </p>
+      )}
 
       {stale && (
         <p className={styles.staleNotice} role="note">
@@ -366,37 +370,26 @@ export function ReportPanel(props: Props) {
         </p>
       )}
 
+      <AiBanner report={report} />
+
       <div className={`${styles.summary} ${styles[`tone-${summary.tone}`]}`}>
         <p className={styles.summaryText}>{summary.text}</p>
-        <ul className={styles.counts} aria-label="Outstanding findings by severity">
-          {SEVERITIES.map((severity) => {
-            const n = outstanding.filter((finding) => finding.severity === severity).length;
-            return (
-              <li key={severity} className={`${styles.count} ${n > 0 ? styles[`count-${severity}`] : styles.countZero}`}>
-                <span className={styles.countNumber}>{n}</span> {n === 1 ? SEVERITY_LABELS[severity].one : SEVERITY_LABELS[severity].many}
-              </li>
-            );
-          })}
-        </ul>
+        <div className={styles.summaryRow}>
+          <ul className={styles.counts} aria-label="Outstanding findings by severity">
+            {SEVERITIES.map((severity) => {
+              const n = outstanding.filter((finding) => finding.severity === severity).length;
+              return (
+                <li key={severity} className={`${styles.count} ${n > 0 ? styles[`count-${severity}`] : styles.countZero}`}>
+                  <span className={styles.countNumber}>{n}</span> {n === 1 ? SEVERITY_LABELS[severity].one : SEVERITY_LABELS[severity].many}
+                </li>
+              );
+            })}
+          </ul>
+          {progress}
+        </div>
         {dismissed > 0 && <p className={styles.dismissedNote}>{dismissed} dismissed by the reviewer.</p>}
+        <AiDetails report={report} />
       </div>
-
-      <AiStatus report={report} />
-
-      <RevisionGate
-        report={report}
-        decisions={decisions}
-        comments={props.comments}
-        round={props.round}
-        aiAvailable={props.aiAvailable}
-        stale={stale}
-        pending={pending}
-        hasDraft={props.hasDraft}
-        draftError={props.draftError}
-        onDraft={props.onDraft}
-        onShowDraft={props.onShowDraft}
-        onDismissSuggestions={props.onDismissSuggestions}
-      />
 
       <HighlightedCopy text={report.text} findings={highlighted} activeKey={activeKey} onSelect={jumpToFinding} />
 
@@ -412,6 +405,14 @@ export function ReportPanel(props: Props) {
             titleClassName={styles[`groupTitle-${severity}`]}
             expanded={!collapsed.includes(severity)}
             onToggle={() => toggleGroup(severity)}
+            action={
+              severity === "suggestion" &&
+              gate.undecidedSuggestions.length > 0 && (
+                <button type="button" className={styles.textButton} onClick={props.onDismissSuggestions} disabled={pending}>
+                  Dismiss remaining ({gate.undecidedSuggestions.length})
+                </button>
+              )
+            }
           >
             {group.map(card)}
           </FindingGroup>
@@ -428,6 +429,14 @@ export function ReportPanel(props: Props) {
         >
           {overridden.map(card)}
         </FindingGroup>
+      )}
+
+      {gate.applies && (
+        <div className={styles.endActions}>
+          {progress}
+          <DraftButton props={props} gate={gate} describedBy="gate-reason" />
+          <p className={styles.hint}>{gate.hint}</p>
+        </div>
       )}
 
       <History history={props.history} />

@@ -1,11 +1,37 @@
 "use client";
 
+// The AI checks' status, in three places: a short label in the results
+// header, a banner only when something needs the reviewer's attention
+// (paused for personal data, or unavailable), and a details line for
+// merged and discarded AI findings.
+
 import type { Report } from "@/engine";
 import styles from "./checker.module.css";
 
-export function AiStatus({ report }: { report: Report }) {
-  const { ai } = report;
+const DEFAULT_NOT_RUN = "No AI model used for this check";
 
+/** For the meta line: "AI: claude-sonnet-5-5", "AI off", "AI paused"… */
+export function AiMeta({ report }: { report: Report }) {
+  const { ai } = report;
+  switch (ai.status) {
+    case "done":
+      return (
+        <>
+          AI: <span className={styles.aiModel}>{ai.model}</span>
+        </>
+      );
+    case "blocked":
+      return <>AI paused</>;
+    case "unavailable":
+      return <>AI unavailable</>;
+    default:
+      return <>AI off</>;
+  }
+}
+
+/** Shown at the top of the results only when the AI checks didn't run as expected. */
+export function AiBanner({ report }: { report: Report }) {
+  const { ai } = report;
   if (ai.status === "blocked") {
     return (
       <div className={`${styles.aiStatus} ${styles.aiBlocked}`} role="note">
@@ -21,25 +47,24 @@ export function AiStatus({ report }: { report: Report }) {
       </div>
     );
   }
-  if (ai.status === "not-run") {
-    return (
-      <div className={styles.aiStatus} role="note">
-        <strong>AI checks off.</strong> {ai.reason && ai.reason !== "No AI model used for this check" ? ai.reason : "Only the rule checks ran."}
-      </div>
-    );
-  }
+  return null;
+}
 
+/** Quiet details for the summary: AI notes merged into rule findings, findings discarded, or why AI didn't run. */
+export function AiDetails({ report }: { report: Report }) {
+  const { ai } = report;
+  if (ai.status === "not-run") {
+    return ai.reason && ai.reason !== DEFAULT_NOT_RUN ? <p className={styles.dismissedNote}>{ai.reason}</p> : null;
+  }
+  if (ai.status !== "done" || (ai.merged === 0 && ai.rejected.length === 0)) return null;
   return (
-    <div className={`${styles.aiStatus} ${styles.aiDone}`} role="note">
-      <p>
-        <strong>AI checks done</strong> <span className={styles.aiModel}>{ai.model}</span>
-        {ai.merged > 0 && (
-          <>
-            {" "}· {ai.merged} AI {ai.merged === 1 ? "note" : "notes"} matched a rule finding and{" "}
-            {ai.merged === 1 ? "was" : "were"} added to it
-          </>
-        )}
-      </p>
+    <div className={styles.aiDetails}>
+      {ai.merged > 0 && (
+        <p>
+          {ai.merged} AI {ai.merged === 1 ? "note" : "notes"} matched a rule finding and {ai.merged === 1 ? "was" : "were"} added
+          to it.
+        </p>
+      )}
       {ai.rejected.length > 0 && (
         <details className={styles.rejected}>
           <summary>

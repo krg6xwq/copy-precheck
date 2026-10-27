@@ -130,6 +130,22 @@ export function DraftPanel(props: Props) {
     ? `${unfixed.length} accepted ${unfixed.length === 1 ? "finding wasn't" : "findings weren't"} fixed in this draft.`
     : "";
   const after = draft.recheck.findings.filter((finding) => !finding.override);
+  const approveHint = editing
+    ? "Check or cancel your edit first."
+    : reasons.length
+      ? `Approve is available once: ${reasons.join(", ")}.`
+      : "Approving makes this the copy and checks it again.";
+  const approveButton = (describedBy: string) => (
+    <button
+      type="button"
+      className={styles.primaryButtonSmall}
+      disabled={pending || reasons.length > 0 || editing}
+      aria-describedby={describedBy}
+      onClick={props.onApprove}
+    >
+      Approve draft
+    </button>
+  );
   const startEditing = () => {
     setEditText(draft.text);
     setEditing(true);
@@ -137,19 +153,29 @@ export function DraftPanel(props: Props) {
 
   return (
     <section className={`${styles.card} ${styles.reportCard}`} aria-labelledby="draft-heading" aria-busy={pending}>
-      <div className={styles.reportHeader}>
-        <div>
-          <h2 id="draft-heading" className={styles.cardTitle} tabIndex={-1} ref={headingRef}>
-            Draft revision
-          </h2>
-          <p className={styles.meta}>
-            Round {round} of {MAX_ROUNDS}
-            {draft.model ? ` · Drafted by ${draft.model}` : ""} · Checked by code
-          </p>
+      <div className={styles.stickyHeader}>
+        <div className={styles.reportHeader}>
+          <div>
+            <h2 id="draft-heading" className={styles.cardTitle} tabIndex={-1} ref={headingRef}>
+              Draft revision
+            </h2>
+            <p className={styles.meta}>
+              Round {round} of {MAX_ROUNDS}
+              {draft.model ? ` · Drafted by ${draft.model}` : ""} · Checked by code
+            </p>
+          </div>
+          <div className={styles.headerActions}>
+            <div className={styles.buttonRow}>
+              {approveButton("approve-reasons")}
+              <button type="button" className={styles.secondaryButton} onClick={props.onBack}>
+                Back to findings
+              </button>
+            </div>
+            <p id="approve-reasons" className={styles.headerHint}>
+              {approveHint}
+            </p>
+          </div>
         </div>
-        <button type="button" className={styles.secondaryButton} onClick={props.onBack}>
-          Back to findings
-        </button>
       </div>
 
       <div className={`${styles.summary} ${reasons.length || unfixed.length ? styles["tone-needs-fix"] : styles["tone-ok"]}`}>
@@ -325,15 +351,8 @@ export function DraftPanel(props: Props) {
       </div>
 
       <div className={styles.draftActions}>
-        <button
-          type="button"
-          className={styles.primaryButton}
-          disabled={pending || reasons.length > 0 || editing}
-          aria-describedby={reasons.length ? "approve-reasons" : undefined}
-          onClick={props.onApprove}
-        >
-          Approve draft
-        </button>
+        {/* Phone widths only: the header isn't sticky there. */}
+        <span className={styles.mobileOnly}>{approveButton("approve-reasons")}</span>
         {!editing && (
           <button type="button" className={styles.secondaryButton} onClick={startEditing} disabled={pending}>
             Edit draft
@@ -342,11 +361,7 @@ export function DraftPanel(props: Props) {
         <button type="button" className={styles.textButton} onClick={props.onDiscard} disabled={pending}>
           Discard draft
         </button>
-        {reasons.length > 0 && (
-          <p id="approve-reasons" className={styles.hint}>
-            Approve is available once: {reasons.join(", ")}.
-          </p>
-        )}
+        <p className={`${styles.hint} ${styles.mobileOnly}`}>{approveHint}</p>
       </div>
     </section>
   );

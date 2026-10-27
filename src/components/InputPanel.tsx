@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, type Ref } from "react";
 import type { Context } from "@/engine";
 import type { Sample } from "@/app/content";
 import { CONTEXT_LABELS } from "@/lib/labels";
@@ -19,11 +19,14 @@ interface Props {
   pending: boolean;
   error: string | null;
   onSubmit: () => void;
+  /** Present when there are results to go back to: closes the form without checking. */
+  onCancel?: () => void;
+  copyRef?: Ref<HTMLTextAreaElement>;
 }
 
 const truncate = (text: string, length: number) => (text.length > length ? `${text.slice(0, length - 1)}…` : text);
 
-export function InputPanel(props: Props) {
+export function InputPanel({ copyRef, onCancel, ...props }: Props) {
   const { samples, text, context, useAi, aiAvailable, maxLength, pending, error } = props;
   const [sampleId, setSampleId] = useState("");
   const ids = { sample: useId(), context: useId(), copy: useId(), count: useId(), ai: useId(), aiHint: useId() };
@@ -59,6 +62,7 @@ export function InputPanel(props: Props) {
               Copy
             </label>
             <textarea
+              ref={copyRef}
               id={ids.copy}
               className={styles.textarea}
               rows={6}
@@ -165,6 +169,11 @@ export function InputPanel(props: Props) {
             "Check copy"
           )}
         </button>
+        {onCancel && (
+          <button type="button" className={styles.textButton} onClick={onCancel} disabled={pending}>
+            Cancel and keep the current results
+          </button>
+        )}
       </form>
     </section>
   );

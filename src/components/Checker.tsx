@@ -13,6 +13,7 @@ import { carryDecisions, changeSource, decidable, MAX_ROUNDS, unfixedLabels, typ
 import type { Draft, Flag, NeedsInput } from "@/engine/revise/types";
 import { findingKey, SEVERITY_LABELS, type Decision } from "@/lib/labels";
 import type { RoundSummary } from "@/lib/markdown";
+import { CopyBar } from "./CopyBar";
 import { DraftPanel } from "./DraftPanel";
 import { InputPanel } from "./InputPanel";
 import { ReportPanel } from "./ReportPanel";
@@ -72,6 +73,9 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
   const [status, setStatus] = useState("");
   const [isPending, startTransition] = useTransition();
   const resultsHeading = useRef<HTMLHeadingElement>(null);
+  const copyField = useRef<HTMLTextAreaElement>(null);
+  // The form collapses after a check, so the results get the full width.
+  const [editing, setEditing] = useState(true);
   const draftHeading = useRef<HTMLHeadingElement>(null);
 
   // The review and rewrite loop.
@@ -84,7 +88,17 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
   const [showDraft, setShowDraft] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
 
-  const focus = (ref: React.RefObject<HTMLHeadingElement | null>) => requestAnimationFrame(() => ref.current?.focus());
+  // Moves focus to a panel's heading and brings the panel's top into view. The heading sits in a
+  // sticky header, so focusing it alone wouldn't scroll: switching from the bottom of the findings
+  // to the draft would land mid-draft.
+  const focus = (ref: React.RefObject<HTMLHeadingElement | null>) =>
+    requestAnimationFrame(() => {
+      const heading = ref.current;
+      if (!heading) return;
+      heading.focus({ preventScroll: true });
+      const panel = heading.closest("section");
+      if (panel && panel.getBoundingClientRect().top < 0) panel.scrollIntoView({ block: "start" });
+    });
 
   function run(input: CheckedInput, overrides: Override[], mode: CheckMode, nextPast: PastDecision[] = past) {
     setError(null);
@@ -99,13 +113,17 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
         });
       } catch {
         setError("Couldn't reach the server. Refresh the page and try again.");
+        setEditing(true);
         return;
       }
       if (!response.ok) {
+        // The error shows in the form, so open it.
         setError(response.error);
+        setEditing(true);
         return;
       }
       const report = response.report;
+      setEditing(false);
       if (mode === "new") {
         setDecisions({});
         setComments({});
@@ -299,23 +317,48 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
   }
 
   const draftVisible = draft !== null && showDraft;
+  const collapsed = result !== null && !editing;
+
+  function cancelEditing() {
+    if (!result) return;
+    setText(result.input.text);
+    setContext(result.input.context);
+    setUseAi(result.input.useAi);
+    setError(null);
+    setEditing(false);
+    focus(draftVisible ? draftHeading : resultsHeading);
+  }
 
   return (
-    <div className={styles.layout}>
-      <InputPanel
-        samples={samples}
-        text={text}
-        onTextChange={setText}
-        context={context}
-        onContextChange={setContext}
-        useAi={useAi}
-        onUseAiChange={setUseAi}
-        aiAvailable={aiAvailable}
-        maxLength={maxLength}
-        pending={isPending}
-        error={error}
-        onSubmit={() => run({ text: text.trim(), context, useAi }, [], "new")}
-      />
+    <div className={collapsed ? styles.layoutSingle : styles.layout}>
+      {collapsed ? (
+        <CopyBar
+          input={result.input}
+          aiAvailable={aiAvailable}
+          pending={isPending}
+          onEdit={() => {
+            setEditing(true);
+            requestAnimationFrame(() => copyField.current?.focus());
+          }}
+        />
+      ) : (
+        <InputPanel
+          samples={samples}
+          text={text}
+          onTextChange={setText}
+          context={context}
+          onContextChange={setContext}
+          useAi={useAi}
+          onUseAiChange={setUseAi}
+          aiAvailable={aiAvailable}
+          maxLength={maxLength}
+          pending={isPending}
+          error={error}
+          onSubmit={() => run({ text: text.trim(), context, useAi }, [], "new")}
+          onCancel={result ? cancelEditing : undefined}
+          copyRef={copyField}
+        />
+      )}
       {draftVisible ? (
         <DraftPanel
           key={draft.text}
