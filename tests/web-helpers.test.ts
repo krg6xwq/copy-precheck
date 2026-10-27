@@ -53,7 +53,7 @@ describe("reportToMarkdown", () => {
     );
     expect(markdown).toContain("> Call +65 6123 4567. Act now!");
     expect(markdown).toContain("**BP-002 Scam-like urgency** (Rule check) — “Act now”");
-    expect(markdown).toContain("Decision: Accepted");
+    expect(markdown).toContain("Decision: Fix");
     expect(markdown).toContain("## Overridden personal-data matches (1)");
     expect(markdown).toContain("Overridden: Published overseas line");
     expect(markdown).toContain("Checked: 2026-10-22 08:00 UTC");
@@ -85,7 +85,7 @@ describe("rounds in the report", () => {
 
   it("records a hand edit as its own round, with what changed and where the copy appears", () => {
     const history = [
-      round(1, "ai", { undone: ["Changed “little” to “well”, but no accepted finding asked for it."] }),
+      round(1, "ai", { undone: ["Changed “little” to “well”, but no finding marked Fix asked for it."] }),
       round(2, "hand", { contextChange: { from: "Email", to: "Notification" } }),
     ];
     const markdown = reportToMarkdown(checkCopy("Log in to see it.", rules), {}, new Date(), { history, round: 3 });

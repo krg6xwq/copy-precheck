@@ -174,7 +174,7 @@ function gateState(props: Props, report: Report) {
   const hint = props.hasDraft
     ? "Your draft is waiting. Discard it to draft again with new decisions."
     : (blocker ??
-      `Drafts fixes for the ${accepted.length} accepted ${accepted.length === 1 ? "finding" : "findings"}. Code checks the draft before you see it.${lastRound}`);
+      `Drafts fixes for the ${accepted.length} ${accepted.length === 1 ? "finding" : "findings"} marked Fix. Code checks the draft before you see it.${lastRound}`);
 
   return { applies, findings, decided, accepted, undecidedSuggestions, blocker, hint };
 }
@@ -216,7 +216,7 @@ function History({ history }: { history: RoundSummary[] }) {
             <ul className={styles.historyItems}>
               {summary.items.map((item, index) => (
                 <li key={index}>
-                  {item.ruleId} {item.words ? `“${item.words}”` : item.ruleName}: {item.decision === "accepted" ? "accepted" : "dismissed"}
+                  {item.ruleId} {item.words ? `“${item.words}”` : item.ruleName}: {item.decision === "accepted" ? "fix" : "dismissed"}
                   {item.comment ? ` (${item.comment})` : ""}
                 </li>
               ))}

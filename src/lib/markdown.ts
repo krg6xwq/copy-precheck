@@ -11,7 +11,7 @@ import {
   type Decision,
 } from "./labels";
 
-const DECISION_LABELS: Record<Decision, string> = { accepted: "Accepted", dismissed: "Dismissed" };
+const DECISION_LABELS: Record<Decision, string> = { accepted: "Fix", dismissed: "Dismissed" };
 
 /** One round of the review and rewrite loop, for the audit trail: an approved AI draft, or a hand edit. */
 export interface RoundSummary {
@@ -55,7 +55,7 @@ function findingLines(finding: Finding, decisions: Record<string, Decision>, com
   ];
   const comment = comments[findingKey(finding)]?.trim();
   if (comment && !finding.override) {
-    lines.push(`  - ${decisions[findingKey(finding)] === "dismissed" ? "Reason" : "Note for the revision"}: ${inline(comment)}`);
+    lines.push(`  - ${decisions[findingKey(finding)] === "dismissed" ? "Reason" : "Note for the fix"}: ${inline(comment)}`);
   }
   if (finding.detail) lines.push(`  - ${finding.layer === "ai" ? "AI note" : "Detail"}: ${inline(finding.detail)}`);
   if (finding.suggestion) lines.push(`  - Suggested wording: ${inline(finding.suggestion)}`);
@@ -107,7 +107,7 @@ function roundLines(summary: RoundSummary): string[] {
   for (const answer of summary.answers) lines.push(`- Reviewer answered “${inline(answer.question)}”: ${inline(answer.answer)}`);
   for (const flag of summary.kept) lines.push(`- Flag kept by the reviewer: ${inline(flag)}`);
   for (const flag of summary.undone ?? []) lines.push(`- Flag undone by the reviewer (original words put back): ${inline(flag)}`);
-  for (const label of summary.unfixed ?? []) lines.push(`- Accepted but not fixed in this draft: ${inline(label)}`);
+  for (const label of summary.unfixed ?? []) lines.push(`- Marked Fix but not fixed in this draft: ${inline(label)}`);
   lines.push("");
   return lines;
 }

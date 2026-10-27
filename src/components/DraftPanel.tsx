@@ -278,7 +278,7 @@ export function DraftPanel(props: Props) {
   ].sort((a, b) => order(a.id) - order(b.id));
   const unfixed = unfixedLabels(draft);
   const unfixedNote = unfixed.length
-    ? `${unfixed.length} accepted ${unfixed.length === 1 ? "finding wasn't" : "findings weren't"} fixed in this draft.`
+    ? `${unfixed.length} ${unfixed.length === 1 ? "finding marked Fix wasn't" : "findings marked Fix weren't"} fixed in this draft.`
     : "";
   const after = draft.recheck.findings.filter((finding) => !finding.override);
   const approveHint = editing
@@ -346,7 +346,7 @@ export function DraftPanel(props: Props) {
               : "Ready to approve. Nothing was flagged."}
         </p>
         <p className={styles.dismissedNote}>
-          Every change was checked: facts kept, each change backed by a finding you accepted, dismissed words untouched.
+          Every change was checked: facts kept, each change backed by a finding marked Fix, dismissed words untouched.
         </p>
       </div>
 
@@ -447,7 +447,7 @@ export function DraftPanel(props: Props) {
         <section className={styles.group} aria-labelledby="unfixed-heading">
           <h3 id="unfixed-heading" className={`${styles.groupTitle} ${styles["groupTitle-needs-fix"]}`}>
             Not fixed in this draft ({unfixed.length})
-            <span className={styles.groupHint}>You accepted these, but the draft left them as they were.</span>
+            <span className={styles.groupHint}>You marked these Fix, but the draft left them as they were.</span>
           </h3>
           <ul className={styles.historyItems}>
             {unfixed.map((label) => (

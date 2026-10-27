@@ -79,12 +79,12 @@ function CommentField({
   if (!open && !required) {
     return (
       <button type="button" className={styles.textButton} onClick={() => setOpen(true)}>
-        {decision === "accepted" ? "Add a note for the revision" : "Add a reason"}
+        {decision === "accepted" ? "Add a note for the fix" : "Add a reason"}
       </button>
     );
   }
   const label =
-    decision === "accepted" ? "Note for the revision (optional)" : required ? "Why dismiss this? (required)" : "Why dismiss this? (optional)";
+    decision === "accepted" ? "Note for the fix (optional)" : required ? "Why dismiss this? (required)" : "Why dismiss this? (optional)";
   const missing = required && !comment.trim();
   return (
     <div className={styles.commentField}>
@@ -221,7 +221,8 @@ export function FindingCard({
             aria-pressed={decision === "accepted"}
             onClick={() => onDecision(decision === "accepted" ? undefined : "accepted")}
           >
-            {decision === "accepted" ? "Accepted" : "Accept"}
+            {/* "Fix" rather than "Accept": the choice is whether the draft should fix this. */}
+            {decision === "accepted" ? "Fixing" : "Fix"}
           </button>
           <button
             type="button"

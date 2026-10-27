@@ -45,7 +45,7 @@ export function HowItChecks({ ruleCount, rulesVersion }: { ruleCount: number; ru
           suggestions, and every one must quote words that are really in the copy.
         </li>
         <li>
-          <strong>Review and revise.</strong> Accept or dismiss each finding, then have the AI draft a revision from your
+          <strong>Review and revise.</strong> Choose Fix or Dismiss for each finding, then have the AI draft a revision from your
           decisions. Code checks every draft, and you approve it. Repeat until you&apos;re happy, then copy the text or
           download the report.
         </li>

@@ -274,7 +274,7 @@ describe("drafts built to break the safeguards", () => {
       const draft = await draftOf(LONG.replace("login to", "log in to").replace("before the deadline", "by the deadline"));
       const flag = draft.flags.find((f) => f.kind === "dismissed-changed");
       expect(flag?.message).toBe(
-        "The draft changed “before” to “by”. You dismissed PL-001 Long sentence for this text, and no finding you accepted covers those words.",
+        "The draft changed “before” to “by”. You dismissed PL-001 Long sentence for this text, and no finding you marked Fix covers those words.",
       );
       // The whole sentence comes with the flag, with the changed word marked.
       expect(flag?.quote?.text).toBe(LONG);

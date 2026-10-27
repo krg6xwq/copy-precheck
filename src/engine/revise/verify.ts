@@ -94,9 +94,9 @@ export function verifyDraft(input: VerifyInput): Draft {
       kind: "unrequested-change",
       message: before.trim()
         ? after.trim()
-          ? `Changed “${short(before)}” to “${short(after)}”, but no accepted finding asked for it.`
-          : `Removed “${short(before)}”, but no accepted finding asked for it.`
-        : `Added “${short(after)}”, but no accepted finding asked for it.`,
+          ? `Changed “${short(before)}” to “${short(after)}”, but no finding marked Fix asked for it.`
+          : `Removed “${short(before)}”, but no finding marked Fix asked for it.`
+        : `Added “${short(after)}”, but no finding marked Fix asked for it.`,
       before,
       after,
       region,
@@ -208,7 +208,7 @@ export function verifyDraft(input: VerifyInput): Draft {
     flags.push({
       id: `dismissed:${item.finding.ruleId}:${squash(match.text)}:${squash(piece.text)}`,
       kind: "dismissed-changed",
-      message: `The draft ${what}. You dismissed ${rule} for this text${covered.length ? ", and no finding you accepted covers those words" : ""}.`,
+      message: `The draft ${what}. You dismissed ${rule} for this text${covered.length ? ", and no finding you marked Fix covers those words" : ""}.`,
       before: piece.text,
       region,
       quote: { text: match.text, marks },
