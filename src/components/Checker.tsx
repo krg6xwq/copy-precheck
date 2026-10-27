@@ -16,7 +16,7 @@ import { CONTEXT_LABELS, findingKey, SEVERITY_LABELS, type Decision } from "@/li
 import { downloadReport } from "@/lib/download";
 import type { RoundSummary } from "@/lib/markdown";
 import { CopyBar } from "./CopyBar";
-import { DraftPanel } from "./DraftPanel";
+import { DraftPanel, type AnsweredQuestion } from "./DraftPanel";
 import { HowItChecks, InputPanel } from "./InputPanel";
 import { ReportPanel } from "./ReportPanel";
 import styles from "./checker.module.css";
@@ -82,7 +82,8 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
   const [past, setPast] = useState<PastDecision[]>([]);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [kept, setKept] = useState<string[]>([]);
-  const [answers, setAnswers] = useState<{ question: string; answer: string }[]>([]);
+  // Answers given in this draft, kept on screen (and in the report) after their question closes.
+  const [answers, setAnswers] = useState<AnsweredQuestion[]>([]);
   const [showDraft, setShowDraft] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
   const draftsUsed = history.filter((summary) => summary.kind !== "hand").length;
@@ -300,7 +301,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
 
   function answer(question: NeedsInput, value: string) {
     revise({ kind: "answer", questionId: question.id, answer: value }, () =>
-      setAnswers((current) => [...current, { question: question.question, answer: value }]),
+      setAnswers((current) => [...current, { id: question.id, question: question.question, quote: question.quote, answer: value }]),
     );
   }
 
@@ -473,6 +474,7 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
           draft={draft}
           round={round}
           kept={kept}
+          answered={answers}
           pending={isPending}
           error={draftError}
           headingRef={draftHeading}

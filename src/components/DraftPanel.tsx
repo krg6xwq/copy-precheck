@@ -12,10 +12,19 @@ import { changeSource, unfixedLabels } from "@/engine/revise/review";
 import { SEVERITIES, SEVERITY_LABELS } from "@/lib/labels";
 import styles from "./checker.module.css";
 
+/** A question the reviewer has answered: it stays on screen, closed, showing the answer. */
+export interface AnsweredQuestion {
+  id: string;
+  question: string;
+  quote: string;
+  answer: string;
+}
+
 interface Props {
   draft: Draft;
   round: number;
   kept: string[];
+  answered: AnsweredQuestion[];
   pending: boolean;
   error: string | null;
   headingRef: RefObject<HTMLHeadingElement | null>;
@@ -126,6 +135,19 @@ interface FlagCardProps {
   onLocate: () => void;
 }
 
+function Answered({ item }: { item: AnsweredQuestion }) {
+  return (
+    <li className={`${styles.question} ${styles.questionAnswered}`}>
+      <p className={styles.questionText}>
+        {item.question} <span className={styles.questionQuote}>“{item.quote}”</span>
+      </p>
+      <p className={styles.answerLine}>
+        <span className={styles.flagKeptTag}>Answered</span> <strong>{item.answer}</strong>
+      </p>
+    </li>
+  );
+}
+
 function FlagCard({ flag, kept, pending, onKeep, onUndo, onEdit, onActivate, onLocate }: FlagCardProps) {
   return (
     <li
@@ -208,6 +230,12 @@ export function DraftPanel(props: Props) {
     });
   }
   const reasons = approvalReasons(draft, kept);
+  // Open and answered questions together, in the order the AI asked them, so an answer stays where its question was.
+  const order = (id: string) => Number(id.replace(/\D/g, "")) || 0;
+  const questions = [
+    ...props.answered.map((answered) => ({ kind: "answered" as const, id: answered.id, answered })),
+    ...draft.needsInput.map((question) => ({ kind: "open" as const, id: question.id, question })),
+  ].sort((a, b) => order(a.id) - order(b.id));
   const unfixed = unfixedLabels(draft);
   const unfixedNote = unfixed.length
     ? `${unfixed.length} accepted ${unfixed.length === 1 ? "finding wasn't" : "findings weren't"} fixed in this draft.`
@@ -377,21 +405,29 @@ export function DraftPanel(props: Props) {
         </section>
       )}
 
-      {draft.needsInput.length > 0 && (
+      {questions.length > 0 && (
         <section className={styles.group} aria-labelledby="questions-heading">
           <h3 id="questions-heading" className={styles.groupTitle}>
-            Needs your input ({draft.needsInput.length})
-            <span className={styles.groupHint}>The AI didn&apos;t guess these. Your answer goes straight into the draft.</span>
+            Needs your input ({questions.length})
+            <span className={styles.groupHint}>
+              {draft.needsInput.length
+                ? "The AI didn't guess these. Your answer goes straight into the draft."
+                : "All answered. Your answers are in the draft."}
+            </span>
           </h3>
           <ul className={styles.findings}>
-            {draft.needsInput.map((question) => (
-              <Question
-                key={question.id}
-                question={question}
-                pending={pending}
-                onAnswer={(answer) => props.onAnswer(question, answer)}
-              />
-            ))}
+            {questions.map((item) =>
+              item.kind === "answered" ? (
+                <Answered key={item.id} item={item.answered} />
+              ) : (
+                <Question
+                  key={item.id}
+                  question={item.question}
+                  pending={pending}
+                  onAnswer={(answer) => props.onAnswer(item.question, answer)}
+                />
+              ),
+            )}
           </ul>
         </section>
       )}

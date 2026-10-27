@@ -1196,3 +1196,21 @@
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
 }
+
+/* A question the reviewer has answered: closed, with the answer shown. */
+.questionAnswered {
+  border-color: var(--color-border);
+  border-left-color: var(--color-ok);
+  background: var(--color-ok-bg);
+  gap: var(--space-1);
+}
+
+.questionAnswered .questionText {
+  margin-bottom: 0;
+}
+
+.answerLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
