@@ -151,11 +151,18 @@ function Answered({ item }: { item: AnsweredQuestion }) {
 function FlagCard({ flag, kept, pending, onKeep, onUndo, onEdit, onActivate, onLocate }: FlagCardProps) {
   return (
     <li
-      className={`${styles.flag} ${kept ? styles.flagKept : ""}`}
+      className={`${styles.flag} ${kept ? styles.flagKept : ""} ${flag.region ? styles.flagLocatable : ""}`}
       onMouseEnter={() => onActivate(true)}
       onMouseLeave={() => onActivate(false)}
       onFocus={() => onActivate(true)}
       onBlur={() => onActivate(false)}
+      // Clicking the card shows its spot in the draft. Its buttons do only their own job, and
+      // selecting text in the card doesn't jump the page.
+      onClick={(event) => {
+        if (!flag.region || (event.target instanceof Element && event.target.closest("button"))) return;
+        if (window.getSelection()?.toString()) return;
+        onLocate();
+      }}
     >
       <p className={styles.flagTitle}>
         <span className={styles.flagKind}>{FLAG_LABELS[flag.kind]}</span>
@@ -164,8 +171,9 @@ function FlagCard({ flag, kept, pending, onKeep, onUndo, onEdit, onActivate, onL
       <p className={styles.detail}>{flag.message}</p>
       {flag.quote && <FlagQuote quote={flag.quote} />}
       <div className={styles.buttonRow}>
+        {/* For keyboard and screen-reader users, who can't click the card: hidden until focused. */}
         {flag.region && (
-          <button type="button" className={styles.textButton} onClick={onLocate}>
+          <button type="button" className={`${styles.textButton} ${styles.showOnFocus}`} onClick={onLocate}>
             Show in draft
           </button>
         )}
@@ -217,11 +225,16 @@ export function DraftPanel(props: Props) {
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(draft.text);
   const editId = useId();
-  const [activeFlag, setActiveFlag] = useState<string | null>(null);
-  const active = partsIn(draft.diff, draft.flags.find((flag) => flag.id === activeFlag)?.region);
+  // Hovering or focusing a flag highlights its spot for as long as it lasts. Clicking a flag pins
+  // the highlight: the page then scrolls, the card slides out from under the pointer, and a
+  // shared state would clear the highlight the moment it appeared.
+  const [hoveredFlag, setHoveredFlag] = useState<string | null>(null);
+  const [pinnedFlag, setPinnedFlag] = useState<string | null>(null);
+  const shownFlag = hoveredFlag ?? pinnedFlag;
+  const active = partsIn(draft.diff, draft.flags.find((flag) => flag.id === shownFlag)?.region);
   const diffBox = useRef<HTMLParagraphElement>(null);
   function locate(flag: Flag) {
-    setActiveFlag(flag.id);
+    setPinnedFlag(flag.id);
     requestAnimationFrame(() => {
       const first = diffBox.current?.querySelector("[data-active]");
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -382,7 +395,7 @@ export function DraftPanel(props: Props) {
                 onKeep={(keep) => props.onKeep(flag, keep)}
                 onUndo={() => props.onUndo(flag)}
                 onEdit={startEditing}
-                onActivate={(on) => setActiveFlag(on ? flag.id : null)}
+                onActivate={(on) => setHoveredFlag(on ? flag.id : null)}
                 onLocate={() => locate(flag)}
               />
             ))}

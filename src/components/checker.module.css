@@ -1214,3 +1214,25 @@
   align-items: center;
   gap: var(--space-2);
 }
+
+/* A flag card that shows its spot in the draft when clicked. */
+.flagLocatable {
+  cursor: pointer;
+}
+
+.flagLocatable:hover {
+  border-color: var(--color-needs-fix);
+}
+
+/* Visually hidden until it has keyboard focus (then it takes its place in the button row). */
+.showOnFocus:not(:focus-visible) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
