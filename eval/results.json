@@ -1,0 +1,1826 @@
+{
+  "run": "2026-10-28",
+  "model": "claude-sonnet-5-5 (effort: low)",
+  "rulesVersion": "0.6",
+  "runsPerSample": 3,
+  "price": {
+    "input": 2,
+    "output": 10
+  },
+  "code": {
+    "results": [
+      {
+        "id": "T01",
+        "expected": [
+          "BP-001",
+          "BP-002",
+          "DC-001"
+        ],
+        "flagged": [
+          "BP-001",
+          "BP-002",
+          "DC-001"
+        ],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T02",
+        "expected": [
+          "PD-002"
+        ],
+        "flagged": [
+          "PD-002"
+        ],
+        "pass": true,
+        "aiAllowed": false,
+        "clean": false
+      },
+      {
+        "id": "T03",
+        "expected": [
+          "FM-001",
+          "FM-002"
+        ],
+        "flagged": [
+          "FM-001",
+          "FM-002"
+        ],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T04",
+        "expected": [
+          "PD-003"
+        ],
+        "flagged": [
+          "PD-003"
+        ],
+        "pass": true,
+        "aiAllowed": false,
+        "clean": false
+      },
+      {
+        "id": "T05",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T06",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T07",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T08",
+        "expected": [
+          "PL-001"
+        ],
+        "flagged": [
+          "PL-001"
+        ],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T09",
+        "expected": [
+          "PD-004",
+          "TM-001"
+        ],
+        "flagged": [
+          "PD-004",
+          "TM-001"
+        ],
+        "pass": true,
+        "aiAllowed": false,
+        "clean": false
+      },
+      {
+        "id": "T10",
+        "expected": [
+          "BP-002"
+        ],
+        "flagged": [
+          "BP-002"
+        ],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T11",
+        "expected": [
+          "BP-001"
+        ],
+        "flagged": [
+          "BP-001"
+        ],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T12",
+        "expected": [
+          "BP-001"
+        ],
+        "flagged": [
+          "BP-001"
+        ],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T13",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T14",
+        "expected": [
+          "PD-001"
+        ],
+        "flagged": [
+          "PD-001"
+        ],
+        "pass": true,
+        "aiAllowed": false,
+        "clean": false
+      },
+      {
+        "id": "T15",
+        "expected": [
+          "PD-005"
+        ],
+        "flagged": [
+          "PD-005"
+        ],
+        "pass": true,
+        "aiAllowed": false,
+        "clean": false
+      },
+      {
+        "id": "T16",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T17",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T18",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T19",
+        "expected": [
+          "TM-002"
+        ],
+        "flagged": [
+          "TM-002"
+        ],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T20",
+        "expected": [
+          "DC-002"
+        ],
+        "flagged": [
+          "DC-002"
+        ],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T21",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T22",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T23",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T24",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T25",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T26",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T27",
+        "expected": [
+          "DC-001"
+        ],
+        "flagged": [
+          "DC-001"
+        ],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T28",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T29",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T30",
+        "expected": [
+          "FM-002",
+          "TM-001"
+        ],
+        "flagged": [
+          "FM-002",
+          "TM-001"
+        ],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T31",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T32",
+        "expected": [
+          "PD-002"
+        ],
+        "flagged": [
+          "PD-002"
+        ],
+        "pass": true,
+        "aiAllowed": false,
+        "clean": false
+      },
+      {
+        "id": "T33",
+        "expected": [
+          "DC-001"
+        ],
+        "flagged": [
+          "DC-001"
+        ],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      },
+      {
+        "id": "T34",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T35",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T36",
+        "expected": [
+          "PD-002"
+        ],
+        "flagged": [
+          "PD-002"
+        ],
+        "pass": true,
+        "aiAllowed": false,
+        "clean": false
+      },
+      {
+        "id": "T37",
+        "expected": [
+          "PD-003"
+        ],
+        "flagged": [
+          "PD-003"
+        ],
+        "pass": true,
+        "aiAllowed": false,
+        "clean": false
+      },
+      {
+        "id": "T38",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": true
+      },
+      {
+        "id": "T39",
+        "expected": [],
+        "flagged": [],
+        "pass": true,
+        "aiAllowed": true,
+        "clean": false
+      }
+    ],
+    "rules": {
+      "PD-001": {
+        "shouldFlag": 1,
+        "caught": 1,
+        "missed": 0,
+        "falseAlarms": 0,
+        "ran": 39,
+        "notApplicable": 0
+      },
+      "PD-002": {
+        "shouldFlag": 3,
+        "caught": 3,
+        "missed": 0,
+        "falseAlarms": 0,
+        "ran": 39,
+        "notApplicable": 0
+      },
+      "PD-003": {
+        "shouldFlag": 2,
+        "caught": 2,
+        "missed": 0,
+        "falseAlarms": 0,
+        "ran": 39,
+        "notApplicable": 0
+      },
+      "PD-004": {
+        "shouldFlag": 1,
+        "caught": 1,
+        "missed": 0,
+        "falseAlarms": 0,
+        "ran": 39,
+        "notApplicable": 0
+      },
+      "PD-005": {
+        "shouldFlag": 1,
+        "caught": 1,
+        "missed": 0,
+        "falseAlarms": 0,
+        "ran": 39,
+        "notApplicable": 0
+      },
+      "BP-001": {
+        "shouldFlag": 3,
+        "caught": 3,
+        "missed": 0,
+        "falseAlarms": 0,
+        "ran": 39,
+        "notApplicable": 0
+      },
+      "BP-002": {
+        "shouldFlag": 2,
+        "caught": 2,
+        "missed": 0,
+        "falseAlarms": 0,
+        "ran": 39,
+        "notApplicable": 0
+      },
+      "TM-001": {
+        "shouldFlag": 2,
+        "caught": 2,
+        "missed": 0,
+        "falseAlarms": 0,
+        "ran": 39,
+        "notApplicable": 0
+      },
+      "TM-002": {
+        "shouldFlag": 1,
+        "caught": 1,
+        "missed": 0,
+        "falseAlarms": 0,
+        "ran": 39,
+        "notApplicable": 0
+      },
+      "FM-001": {
+        "shouldFlag": 1,
+        "caught": 1,
+        "missed": 0,
+        "falseAlarms": 0,
+        "ran": 39,
+        "notApplicable": 0
+      },
+      "FM-002": {
+        "shouldFlag": 2,
+        "caught": 2,
+        "missed": 0,
+        "falseAlarms": 0,
+        "ran": 39,
+        "notApplicable": 0
+      },
+      "DC-001": {
+        "shouldFlag": 3,
+        "caught": 3,
+        "missed": 0,
+        "falseAlarms": 0,
+        "ran": 5,
+        "notApplicable": 34
+      },
+      "DC-002": {
+        "shouldFlag": 1,
+        "caught": 1,
+        "missed": 0,
+        "falseAlarms": 0,
+        "ran": 2,
+        "notApplicable": 37
+      },
+      "PL-001": {
+        "shouldFlag": 1,
+        "caught": 1,
+        "missed": 0,
+        "falseAlarms": 0,
+        "ran": 39,
+        "notApplicable": 0
+      }
+    }
+  },
+  "ai": {
+    "runs": [
+      {
+        "sample": "T01",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1803,
+        "outputTokens": 10,
+        "ms": 1794
+      },
+      {
+        "sample": "T01",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1803,
+        "outputTokens": 10,
+        "ms": 1066
+      },
+      {
+        "sample": "T01",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1803,
+        "outputTokens": 10,
+        "ms": 1087
+      },
+      {
+        "sample": "T03",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1774,
+        "outputTokens": 10,
+        "ms": 1159
+      },
+      {
+        "sample": "T03",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1774,
+        "outputTokens": 10,
+        "ms": 1533
+      },
+      {
+        "sample": "T03",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1774,
+        "outputTokens": 10,
+        "ms": 878
+      },
+      {
+        "sample": "T05",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1738,
+        "outputTokens": 10,
+        "ms": 895
+      },
+      {
+        "sample": "T05",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1738,
+        "outputTokens": 10,
+        "ms": 1171
+      },
+      {
+        "sample": "T05",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1738,
+        "outputTokens": 10,
+        "ms": 798
+      },
+      {
+        "sample": "T06",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1705,
+        "outputTokens": 10,
+        "ms": 921
+      },
+      {
+        "sample": "T06",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1705,
+        "outputTokens": 10,
+        "ms": 973
+      },
+      {
+        "sample": "T06",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1705,
+        "outputTokens": 10,
+        "ms": 936
+      },
+      {
+        "sample": "T07",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [
+          "AI-001"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1721,
+        "outputTokens": 122,
+        "ms": 1779
+      },
+      {
+        "sample": "T07",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [
+          "AI-001"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1721,
+        "outputTokens": 106,
+        "ms": 1574
+      },
+      {
+        "sample": "T07",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [
+          "AI-001"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1721,
+        "outputTokens": 122,
+        "ms": 1494
+      },
+      {
+        "sample": "T08",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1815,
+        "outputTokens": 10,
+        "ms": 1019
+      },
+      {
+        "sample": "T08",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1815,
+        "outputTokens": 10,
+        "ms": 1053
+      },
+      {
+        "sample": "T08",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1815,
+        "outputTokens": 10,
+        "ms": 2069
+      },
+      {
+        "sample": "T10",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 1,
+        "rejected": [],
+        "inputTokens": 1799,
+        "outputTokens": 120,
+        "ms": 1874
+      },
+      {
+        "sample": "T10",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [
+          "AI-004"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1799,
+        "outputTokens": 85,
+        "ms": 1446
+      },
+      {
+        "sample": "T10",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 1,
+        "rejected": [],
+        "inputTokens": 1799,
+        "outputTokens": 121,
+        "ms": 1752
+      },
+      {
+        "sample": "T11",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [
+          "AI-001"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1741,
+        "outputTokens": 102,
+        "ms": 1488
+      },
+      {
+        "sample": "T11",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [
+          "AI-001"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1741,
+        "outputTokens": 112,
+        "ms": 1740
+      },
+      {
+        "sample": "T11",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1741,
+        "outputTokens": 10,
+        "ms": 893
+      },
+      {
+        "sample": "T12",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1741,
+        "outputTokens": 10,
+        "ms": 1014
+      },
+      {
+        "sample": "T12",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1741,
+        "outputTokens": 10,
+        "ms": 1077
+      },
+      {
+        "sample": "T12",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1741,
+        "outputTokens": 10,
+        "ms": 1105
+      },
+      {
+        "sample": "T13",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1717,
+        "outputTokens": 10,
+        "ms": 1467
+      },
+      {
+        "sample": "T13",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1717,
+        "outputTokens": 10,
+        "ms": 1897
+      },
+      {
+        "sample": "T13",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1717,
+        "outputTokens": 10,
+        "ms": 2018
+      },
+      {
+        "sample": "T16",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1740,
+        "outputTokens": 10,
+        "ms": 949
+      },
+      {
+        "sample": "T16",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1740,
+        "outputTokens": 10,
+        "ms": 947
+      },
+      {
+        "sample": "T16",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1740,
+        "outputTokens": 10,
+        "ms": 854
+      },
+      {
+        "sample": "T17",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1737,
+        "outputTokens": 10,
+        "ms": 866
+      },
+      {
+        "sample": "T17",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1737,
+        "outputTokens": 10,
+        "ms": 1044
+      },
+      {
+        "sample": "T17",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1737,
+        "outputTokens": 10,
+        "ms": 1007
+      },
+      {
+        "sample": "T18",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1730,
+        "outputTokens": 10,
+        "ms": 909
+      },
+      {
+        "sample": "T18",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1730,
+        "outputTokens": 10,
+        "ms": 1648
+      },
+      {
+        "sample": "T18",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1730,
+        "outputTokens": 10,
+        "ms": 1855
+      },
+      {
+        "sample": "T19",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1743,
+        "outputTokens": 10,
+        "ms": 899
+      },
+      {
+        "sample": "T19",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1743,
+        "outputTokens": 10,
+        "ms": 776
+      },
+      {
+        "sample": "T19",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1743,
+        "outputTokens": 10,
+        "ms": 916
+      },
+      {
+        "sample": "T20",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1749,
+        "outputTokens": 10,
+        "ms": 718
+      },
+      {
+        "sample": "T20",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1749,
+        "outputTokens": 10,
+        "ms": 755
+      },
+      {
+        "sample": "T20",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1749,
+        "outputTokens": 10,
+        "ms": 806
+      },
+      {
+        "sample": "T21",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1748,
+        "outputTokens": 10,
+        "ms": 1157
+      },
+      {
+        "sample": "T21",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1748,
+        "outputTokens": 10,
+        "ms": 1188
+      },
+      {
+        "sample": "T21",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1748,
+        "outputTokens": 10,
+        "ms": 1211
+      },
+      {
+        "sample": "T22",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1706,
+        "outputTokens": 10,
+        "ms": 661
+      },
+      {
+        "sample": "T22",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1706,
+        "outputTokens": 10,
+        "ms": 721
+      },
+      {
+        "sample": "T22",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1706,
+        "outputTokens": 10,
+        "ms": 707
+      },
+      {
+        "sample": "T23",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1719,
+        "outputTokens": 10,
+        "ms": 748
+      },
+      {
+        "sample": "T23",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1719,
+        "outputTokens": 10,
+        "ms": 757
+      },
+      {
+        "sample": "T23",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1719,
+        "outputTokens": 10,
+        "ms": 682
+      },
+      {
+        "sample": "T24",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [
+          "AI-003"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1720,
+        "outputTokens": 113,
+        "ms": 1709
+      },
+      {
+        "sample": "T24",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1720,
+        "outputTokens": 240,
+        "ms": 2887
+      },
+      {
+        "sample": "T24",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [
+          "AI-003"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1720,
+        "outputTokens": 113,
+        "ms": 2117
+      },
+      {
+        "sample": "T25",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1725,
+        "outputTokens": 10,
+        "ms": 816
+      },
+      {
+        "sample": "T25",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1725,
+        "outputTokens": 10,
+        "ms": 980
+      },
+      {
+        "sample": "T25",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1725,
+        "outputTokens": 10,
+        "ms": 982
+      },
+      {
+        "sample": "T26",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [
+          "AI-004"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1727,
+        "outputTokens": 172,
+        "ms": 2210
+      },
+      {
+        "sample": "T26",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [
+          "AI-004"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1727,
+        "outputTokens": 176,
+        "ms": 1830
+      },
+      {
+        "sample": "T26",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [
+          "AI-004"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1727,
+        "outputTokens": 167,
+        "ms": 1811
+      },
+      {
+        "sample": "T27",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1754,
+        "outputTokens": 10,
+        "ms": 1305
+      },
+      {
+        "sample": "T27",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1754,
+        "outputTokens": 10,
+        "ms": 1052
+      },
+      {
+        "sample": "T27",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1754,
+        "outputTokens": 10,
+        "ms": 862
+      },
+      {
+        "sample": "T28",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [
+          "AI-002"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1715,
+        "outputTokens": 112,
+        "ms": 1606
+      },
+      {
+        "sample": "T28",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [
+          "AI-002"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1715,
+        "outputTokens": 107,
+        "ms": 1483
+      },
+      {
+        "sample": "T28",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [
+          "AI-002"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1715,
+        "outputTokens": 140,
+        "ms": 1948
+      },
+      {
+        "sample": "T29",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1736,
+        "outputTokens": 10,
+        "ms": 899
+      },
+      {
+        "sample": "T29",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1736,
+        "outputTokens": 10,
+        "ms": 774
+      },
+      {
+        "sample": "T29",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1736,
+        "outputTokens": 10,
+        "ms": 1355
+      },
+      {
+        "sample": "T30",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1768,
+        "outputTokens": 10,
+        "ms": 831
+      },
+      {
+        "sample": "T30",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1768,
+        "outputTokens": 10,
+        "ms": 763
+      },
+      {
+        "sample": "T30",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1768,
+        "outputTokens": 10,
+        "ms": 854
+      },
+      {
+        "sample": "T31",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1724,
+        "outputTokens": 10,
+        "ms": 1127
+      },
+      {
+        "sample": "T31",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1724,
+        "outputTokens": 10,
+        "ms": 1033
+      },
+      {
+        "sample": "T31",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1724,
+        "outputTokens": 10,
+        "ms": 988
+      },
+      {
+        "sample": "T33",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1742,
+        "outputTokens": 10,
+        "ms": 864
+      },
+      {
+        "sample": "T33",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1742,
+        "outputTokens": 10,
+        "ms": 715
+      },
+      {
+        "sample": "T33",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1742,
+        "outputTokens": 10,
+        "ms": 819
+      },
+      {
+        "sample": "T34",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1742,
+        "outputTokens": 10,
+        "ms": 1656
+      },
+      {
+        "sample": "T34",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1742,
+        "outputTokens": 10,
+        "ms": 1487
+      },
+      {
+        "sample": "T34",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1742,
+        "outputTokens": 10,
+        "ms": 1702
+      },
+      {
+        "sample": "T35",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1722,
+        "outputTokens": 10,
+        "ms": 1448
+      },
+      {
+        "sample": "T35",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1722,
+        "outputTokens": 10,
+        "ms": 1081
+      },
+      {
+        "sample": "T35",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1722,
+        "outputTokens": 10,
+        "ms": 934
+      },
+      {
+        "sample": "T38",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1765,
+        "outputTokens": 10,
+        "ms": 1103
+      },
+      {
+        "sample": "T38",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1765,
+        "outputTokens": 10,
+        "ms": 1158
+      },
+      {
+        "sample": "T38",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1765,
+        "outputTokens": 10,
+        "ms": 1291
+      },
+      {
+        "sample": "T39",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [
+          "AI-001"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1747,
+        "outputTokens": 221,
+        "ms": 3041
+      },
+      {
+        "sample": "T39",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [
+          "AI-001"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1747,
+        "outputTokens": 231,
+        "ms": 2356
+      },
+      {
+        "sample": "T39",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [
+          "AI-001"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1747,
+        "outputTokens": 215,
+        "ms": 2190
+      }
+    ],
+    "rules": {
+      "AI-001": {
+        "shouldFlag": 6,
+        "caught": 6,
+        "missed": 0,
+        "falseAlarms": 2
+      },
+      "AI-002": {
+        "shouldFlag": 3,
+        "caught": 3,
+        "missed": 0,
+        "falseAlarms": 0
+      },
+      "AI-003": {
+        "shouldFlag": 3,
+        "caught": 2,
+        "missed": 1,
+        "falseAlarms": 0
+      },
+      "AI-004": {
+        "shouldFlag": 3,
+        "caught": 3,
+        "missed": 0,
+        "falseAlarms": 1
+      }
+    }
+  },
+  "loop": [
+    {
+      "id": "L1",
+      "note": "Long promotional email with many problems; \"Act now\" is an approved campaign line.",
+      "rounds": [
+        {
+          "round": 1,
+          "findings": 17,
+          "codeFindings": 10,
+          "aiFindings": 7,
+          "markedFix": 16,
+          "dismissed": 1,
+          "ms": 12101,
+          "inputTokens": 5597,
+          "outputTokens": 1818,
+          "draft": {
+            "status": "ready",
+            "calls": 1,
+            "changes": 14,
+            "flags": {},
+            "questions": [
+              "FM-001 “$500”",
+              "FM-002 “05/11/2026”"
+            ],
+            "unfixed": []
+          },
+          "stillFound": 0,
+          "newNext": {
+            "code": [
+              "PL-001 “When your fixed deposit reaches maturity, your original deposit and interest will be placed into a new deposit for the same period unless you instruct us otherwise.”"
+            ],
+            "ai": [
+              "AI-002 “Otherwise, your application will be cancelled and you will need to start again from the beginning.”",
+              "AI-004 “reaches maturity”"
+            ]
+          }
+        },
+        {
+          "round": 2,
+          "findings": 4,
+          "codeFindings": 2,
+          "aiFindings": 2,
+          "markedFix": 3,
+          "dismissed": 1,
+          "ms": 6155,
+          "inputTokens": 4415,
+          "outputTokens": 829,
+          "draft": {
+            "status": "ready",
+            "calls": 1,
+            "changes": 2,
+            "flags": {},
+            "questions": [],
+            "unfixed": []
+          },
+          "stillFound": 0,
+          "newNext": {
+            "code": [],
+            "ai": []
+          }
+        },
+        {
+          "round": 3,
+          "findings": 1,
+          "codeFindings": 1,
+          "aiFindings": 0,
+          "markedFix": 0,
+          "dismissed": 1,
+          "ms": 1210,
+          "inputTokens": 2040,
+          "outputTokens": 10
+        }
+      ],
+      "outcome": "nothing left to fix after 2 revisions (only dismissed findings)"
+    },
+    {
+      "id": "L2",
+      "note": "Account email mixing a promotion, a card block and jargon; the long card sentence and \"Last chance\" are kept on purpose.",
+      "rounds": [
+        {
+          "round": 1,
+          "findings": 18,
+          "codeFindings": 11,
+          "aiFindings": 7,
+          "markedFix": 16,
+          "dismissed": 2,
+          "ms": 12050,
+          "inputTokens": 5809,
+          "outputTokens": 1720,
+          "draft": {
+            "status": "ready",
+            "calls": 1,
+            "changes": 16,
+            "flags": {},
+            "questions": [
+              "FM-002 “01/12/2026”"
+            ],
+            "unfixed": []
+          },
+          "stillFound": 0,
+          "newNext": {
+            "code": [
+              "PL-001 “To unblock it, log in to the app, go to Settings, choose Personal Information and re-submit your identity documents within 48 hours so we can keep your card active.”",
+              "PL-001 “If you hold a fixed deposit with us, any earned interest will be credited when your fixed deposit ends, net of applicable tax deducted at source.”"
+            ],
+            "ai": [
+              "AI-002 “Your debit card has been temporarily blocked because your details need updating.”",
+              "AI-004 “net of applicable tax deducted at source”"
+            ]
+          }
+        },
+        {
+          "round": 2,
+          "findings": 5,
+          "codeFindings": 3,
+          "aiFindings": 2,
+          "markedFix": 2,
+          "dismissed": 3,
+          "ms": 7031,
+          "inputTokens": 4541,
+          "outputTokens": 727,
+          "draft": {
+            "status": "ready",
+            "calls": 1,
+            "changes": 2,
+            "flags": {},
+            "questions": [],
+            "unfixed": []
+          },
+          "stillFound": 0,
+          "newNext": {
+            "code": [
+              "PL-001 “If you hold a fixed deposit with us, any earned interest will be credited when your fixed deposit ends, after any tax that is taken off before you receive it.”"
+            ],
+            "ai": [
+              "AI-002 “so your debit card is on hold”"
+            ]
+          }
+        },
+        {
+          "round": 3,
+          "findings": 4,
+          "codeFindings": 3,
+          "aiFindings": 1,
+          "markedFix": 1,
+          "dismissed": 3,
+          "ms": 4632,
+          "inputTokens": 4371,
+          "outputTokens": 533,
+          "draft": {
+            "status": "ready",
+            "calls": 1,
+            "changes": 1,
+            "flags": {},
+            "questions": [],
+            "unfixed": []
+          },
+          "stillFound": 0,
+          "newNext": {
+            "code": [],
+            "ai": [
+              "AI-002 “we've paused your debit card for now”"
+            ]
+          }
+        }
+      ],
+      "outcome": "stopped after 3 rounds"
+    },
+    {
+      "id": "L3",
+      "note": "Short notification with a few problems and an ambiguous date.",
+      "rounds": [
+        {
+          "round": 1,
+          "findings": 5,
+          "codeFindings": 4,
+          "aiFindings": 1,
+          "markedFix": 5,
+          "dismissed": 0,
+          "ms": 5286,
+          "inputTokens": 3933,
+          "outputTokens": 493,
+          "draft": {
+            "status": "ready",
+            "calls": 1,
+            "changes": 4,
+            "flags": {},
+            "questions": [
+              "FM-002 “03/11/2026”"
+            ],
+            "unfixed": []
+          },
+          "stillFound": 0,
+          "newNext": {
+            "code": [],
+            "ai": []
+          }
+        },
+        {
+          "round": 2,
+          "findings": 0,
+          "codeFindings": 0,
+          "aiFindings": 0,
+          "markedFix": 0,
+          "dismissed": 0,
+          "ms": 979,
+          "inputTokens": 1776,
+          "outputTokens": 10
+        }
+      ],
+      "outcome": "clean after 1 revisions"
+    }
+  ]
+}
