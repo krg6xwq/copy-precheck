@@ -39,7 +39,7 @@ The rules live in `rules.yaml`, and the rule pages below are generated from it, 
 
 ---
 
-*The sections below are generated from `rules.yaml` (version 0.6). Edit that file, not this page.*
+*The sections below are generated from `rules.yaml` (version 0.7). Edit that file, not this page.*
 
 ## All rules at a glance
 

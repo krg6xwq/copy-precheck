@@ -53,6 +53,7 @@ How to revise:
 - Add no new claims, offers, promises or facts. Add a sentence only when a fix requires it, such as a required disclosure.
 - Use the standard wording for disclosures: "p.a." after an interest rate, "T&Cs apply.", and "Investments involve risk. The value may go down as well as up." Add each disclosure once. If a fix also needs to say that returns can go up or down, the risk disclosure already says it: don't add a second sentence saying the same thing.
 - Keep the meaning, the tone and roughly the length.
+- Keep every sentence you write or rewrite to 25 words or fewer. Plain words often take more of them: if a fix makes a sentence longer, split it.
 
 When a fix needs a fact the copy doesn't give, don't guess. Examples: which month an ambiguous date like 05/11/2026 means, which currency a bare "$" amount is in, a figure or date that isn't stated. Leave those words unchanged in revisedText and add a needsInput item: "quote" = only the words holding the fact (such as "05/11/2026" or "$500"), "question" = what you need to know, in plain words, "options" = up to 4 likely answers, a few words each, written as they should appear in the copy.
 - Ask about each fact once, even if several findings involve it.

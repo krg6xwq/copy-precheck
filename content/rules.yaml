@@ -1,4 +1,4 @@
-# Tembusu Bank — UI copy rules (DRAFT v0.6)
+# Tembusu Bank — UI copy rules (DRAFT v0.7)
 #
 # Tembusu Bank is fictional. These rules are loosely modelled on common
 # banking practice. They are NOT real MAS, legal or compliance requirements.
@@ -55,7 +55,7 @@
 #   ai           `guidance` for the model. Never decided by code.
 # ---------------------------------------------------------------------------
 
-version: 0.6
+version: 0.7
 bank: Tembusu Bank
 
 rules:
@@ -390,9 +390,15 @@ rules:
     extends: [BP-002]
     check:
       type: ai
+      # Judged across the message, not sentence by sentence (v0.7): the
+      # evaluation's loop showed calm rewrites of a card-block notice being
+      # flagged again and again for a next step given in the next sentence.
       guidance: >
         Flag error and warning messages that blame the customer, sound
-        alarming without reason, or don't say what to do next.
+        alarming without reason, or don't say what to do next. Judge the
+        message as a whole: don't flag a sentence for leaving out a next step
+        that the copy gives nearby. Stating bad news plainly ("your card is
+        blocked", "the payment didn't go through") isn't alarming in itself.
     why: >
       Customers who feel blamed or panicked make mistakes or call the hotline.
       Calm, specific copy gets them back on track.

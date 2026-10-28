@@ -246,8 +246,12 @@ interface LoopRound {
   };
   /** Of the findings marked Fix this round, how many are still found after approving. */
   stillFound?: number;
-  /** Findings after approving that weren't in this round at all, by layer. */
-  newNext?: { code: string[]; ai: string[] };
+  /**
+   * Findings after approving that weren't in this round. "Introduced": their words weren't in the
+   * copy before, so the draft brought them in. "Flagged late": the words were there all along and
+   * only got flagged now (for AI findings, run-to-run variation).
+   */
+  newNext?: { introduced: string[]; flaggedLate: string[] };
   ms: number;
   inputTokens: number;
   outputTokens: number;
@@ -314,9 +318,12 @@ if (!args["skip-loop"] && !only) {
       const nextFindings = decidable(nextReport);
       row.stillFound = markedFix.filter((f) => nextFindings.some((n) => sameIssue(f, n))).length;
       const fresh = nextFindings.filter((n) => !findings.some((f) => sameIssue(f, n)));
+      const before = report.text.replace(/\s+/g, " ").toLowerCase();
+      const label = (f: Finding) => `${f.ruleId} (${f.layer === "ai" ? "AI" : "rule"}) “${f.match?.text ?? ""}”`;
+      const wasThere = (f: Finding) => Boolean(f.match) && before.includes(words(f));
       row.newNext = {
-        code: fresh.filter((f) => f.layer !== "ai").map((f) => `${f.ruleId} “${f.match?.text ?? ""}”`),
-        ai: fresh.filter((f) => f.layer === "ai").map((f) => `${f.ruleId} “${f.match?.text ?? ""}”`),
+        introduced: fresh.filter((f) => !wasThere(f)).map(label),
+        flaggedLate: fresh.filter(wasThere).map(label),
       };
       row.ms = stats.ms + drafting.stats.ms;
       row.inputTokens = stats.inputTokens + drafting.stats.inputTokens;
@@ -424,7 +431,7 @@ if (loopResults.length) {
   md.push(
     "## 3. Review and rewrite loop",
     "",
-    "A simple reviewer: marks every finding Fix except the dismissed rules, answers each question with the first option, keeps every flag, approves. *Still found* counts findings marked Fix that the next check finds again on the same words. *New next round* are findings after approving that weren't there before, which is the measure of a draft bringing in new problems.",
+    "A simple reviewer: marks every finding Fix except the dismissed rules, answers each question with the first option, keeps every flag, approves. *Still found* counts findings marked Fix that the next check finds again on the same words. *New next round* are findings after approving that weren't there before, split into *introduced* (the words are new: the draft brought the problem in) and *flagged late* (the words were there all along, and only now got flagged).",
     "",
   );
   for (const l of loopResults) {
@@ -433,12 +440,12 @@ if (loopResults.length) {
       "",
       `Outcome: ${l.outcome}.`,
       "",
-      "| Round | Findings (code / AI) | Marked Fix | Draft calls | Changes | Flags | Questions | Not fixed | Still found | New next round (code / AI) |",
+      "| Round | Findings (code / AI) | Marked Fix | Draft calls | Changes | Flags | Questions | Not fixed | Still found | New next round (introduced / flagged late) |",
       "|---|---|---|---|---|---|---|---|---|---|",
       ...l.rounds.map((r) => {
         const d = r.draft;
         const flags = d ? Object.entries(d.flags).map(([k, n]) => `${n} ${k}`).join(", ") || "0" : "–";
-        const fresh = r.newNext ? `${r.newNext.code.length} / ${r.newNext.ai.length}` : "–";
+        const fresh = r.newNext ? `${r.newNext.introduced.length} / ${r.newNext.flaggedLate.length}` : "–";
         return `| ${r.round} | ${r.findings} (${r.codeFindings} / ${r.aiFindings}) | ${r.markedFix} | ${d?.calls ?? "–"} | ${d?.changes ?? "–"} | ${flags} | ${d?.questions.length ?? "–"} | ${d?.unfixed.length ?? "–"} | ${r.stillFound ?? "–"} | ${fresh} |`;
       }),
       "",
@@ -446,7 +453,8 @@ if (loopResults.length) {
     const details = l.rounds.flatMap((r) => [
       ...(r.draft?.questions.length ? [`- Round ${r.round} questions: ${r.draft.questions.map(cell).join("; ")}`] : []),
       ...(r.draft?.unfixed.length ? [`- Round ${r.round} not fixed: ${r.draft.unfixed.join(", ")}`] : []),
-      ...(r.newNext && (r.newNext.code.length || r.newNext.ai.length) ? [`- New after round ${r.round}: ${[...r.newNext.code, ...r.newNext.ai].map(cell).join("; ")}`] : []),
+      ...(r.newNext?.introduced.length ? [`- Introduced by the round ${r.round} draft: ${r.newNext.introduced.map(cell).join("; ")}`] : []),
+      ...(r.newNext?.flaggedLate.length ? [`- Flagged late after round ${r.round} (words were already there): ${r.newNext.flaggedLate.map(cell).join("; ")}`] : []),
     ]);
     if (details.length) md.push(...details, "");
   }
@@ -457,7 +465,7 @@ if (loopResults.length) {
     "",
     `- Drafts: ${drafted.length}; findings marked Fix: ${drafted.reduce((n, r) => n + r.markedFix, 0)}; still found after approving: ${drafted.reduce((n, r) => n + (r.stillFound ?? 0), 0)}`,
     `- Flags per draft: ${drafted.length ? (drafted.reduce((n, r) => n + Object.values(r.draft!.flags).reduce((a, b) => a + b, 0), 0) / drafted.length).toFixed(1) : "–"}; questions asked: ${drafted.reduce((n, r) => n + r.draft!.questions.length, 0)}; drafts that needed a second try: ${drafted.filter((r) => r.draft!.calls > 1).length}`,
-    `- New findings after approving: ${drafted.reduce((n, r) => n + (r.newNext?.code.length ?? 0), 0)} from the rule checks, ${drafted.reduce((n, r) => n + (r.newNext?.ai.length ?? 0), 0)} from the AI checks`,
+    `- New findings after approving: ${drafted.reduce((n, r) => n + (r.newNext?.introduced.length ?? 0), 0)} introduced by drafts, ${drafted.reduce((n, r) => n + (r.newNext?.flaggedLate.length ?? 0), 0)} flagged late on words that were already there`,
     `- Cost of the loop at list price: ${usd(allRounds.reduce((n, r) => n + cost(r.inputTokens, r.outputTokens), 0))}`,
     "",
   );
