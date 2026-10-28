@@ -2,7 +2,7 @@
 
 - Run: 2026-10-28
 - Model: claude-sonnet-5-5 (effort: low)
-- Rules: version 0.6 (18 rules)
+- Rules: version 0.7 (18 rules)
 - Test set: 39 samples (15 clean)
 - AI runs per sample: 3
 
@@ -39,29 +39,27 @@ Per rule. *Ran* counts the samples where the rule actually checked the copy; *no
 ## 2. AI layer (31 samples the guard clears × 3 runs)
 
 - Runs that completed: **93 of 93**
-- Runs whose AI findings match the test set exactly: **89 of 93 (96%)**
-- Samples that matched in every run: **28 of 31**
-- Samples with the same AI findings in every run (consistent): **28 of 31**
+- Runs whose AI findings match the test set exactly: **92 of 93 (99%)**
+- Samples that matched in every run: **30 of 31**
+- Samples with the same AI findings in every run (consistent): **30 of 31**
 - AI findings rejected by code (wrong rule, or quote not in the copy): **0** across all runs
-- AI notes merged into a rule finding on the same words: **2**
-- Time per check: median 1.1 s, 90th percentile 1.9 s
-- Tokens per check: median 1740 in / 10 out
-- Cost per check at list price (US$2 / US$10 per million tokens): median US$0.0036; all 93 checks US$0.360
+- AI notes merged into a rule finding on the same words: **3**
+- Time per check: median 1.0 s, 90th percentile 2.4 s
+- Tokens per check: median 1814 in / 10 out
+- Cost per check at list price (US$2 / US$10 per million tokens): median US$0.0037; all 93 checks US$0.372
 
 | AI rule | Should flag (runs) | Caught | Missed | False alarms |
 |---|---|---|---|---|
-| AI-001 Implied promise | 6 | 6 | 0 | 2 |
+| AI-001 Implied promise | 6 | 6 | 0 | 0 |
 | AI-002 Error message blames or alarms | 3 | 3 | 0 | 0 |
-| AI-003 Unexplained acronym | 3 | 2 | 1 | 0 |
+| AI-003 Unexplained acronym | 3 | 3 | 0 | 0 |
 | AI-004 Jargon | 3 | 3 | 0 | 1 |
 
 Samples that didn't match the test set in every run, or varied between runs:
 
 | Sample | Expected | Run 1 | Run 2 | Run 3 |
 |---|---|---|---|---|
-| T10 | nothing | nothing | AI-004 | nothing |
-| T11 | nothing | AI-001 | AI-001 | nothing |
-| T24 | AI-003 | AI-003 | nothing | AI-003 |
+| T10 | nothing | AI-004 | nothing | nothing |
 
 ## Prompt injection
 
@@ -74,41 +72,44 @@ Even when a model obeys, the damage is limited by design: the AI can only add su
 
 ## 3. Review and rewrite loop
 
-A simple reviewer: marks every finding Fix except the dismissed rules, answers each question with the first option, keeps every flag, approves. *Still found* counts findings marked Fix that the next check finds again on the same words. *New next round* are findings after approving that weren't there before, which is the measure of a draft bringing in new problems.
+A simple reviewer: marks every finding Fix except the dismissed rules, answers each question with the first option, keeps every flag, approves. *Still found* counts findings marked Fix that the next check finds again on the same words. *New next round* are findings after approving that weren't there before, split into *introduced* (the words are new: the draft brought the problem in) and *flagged late* (the words were there all along, and only now got flagged).
 
 ### L1: Long promotional email with many problems; "Act now" is an approved campaign line.
 
-Outcome: nothing left to fix after 2 revisions (only dismissed findings).
+Outcome: stopped after 3 rounds.
 
-| Round | Findings (code / AI) | Marked Fix | Draft calls | Changes | Flags | Questions | Not fixed | Still found | New next round (code / AI) |
+| Round | Findings (code / AI) | Marked Fix | Draft calls | Changes | Flags | Questions | Not fixed | Still found | New next round (introduced / flagged late) |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | 17 (10 / 7) | 16 | 1 | 14 | 0 | 2 | 0 | 0 | 1 / 2 |
-| 2 | 4 (2 / 2) | 3 | 1 | 2 | 0 | 0 | 0 | 0 | 0 / 0 |
-| 3 | 1 (1 / 0) | 0 | – | – | – | – | – | – | – |
+| 1 | 16 (10 / 6) | 15 | 1 | 12 | 0 | 2 | 0 | 0 | 2 / 2 |
+| 2 | 5 (2 / 3) | 4 | 1 | 2 | 0 | 0 | 0 | 0 | 0 / 1 |
+| 3 | 2 (1 / 1) | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 / 0 |
 
 - Round 1 questions: FM-001 “$500”; FM-002 “05/11/2026”
-- New after round 1: PL-001 “When your fixed deposit reaches maturity, your original deposit and interest will be placed into a new deposit for the same period unless you instruct us otherwise.”; AI-002 “Otherwise, your application will be cancelled and you will need to start again from the beginning.”; AI-004 “reaches maturity”
+- Introduced by the round 1 draft: AI-001 (AI) “Our fund managers have a strong track record.”; PL-001 (rule) “When your fixed deposit reaches maturity, your original deposit and interest will be placed into a new fixed deposit for the same period unless you instruct us otherwise.”
+- Flagged late after round 1 (words were already there): AI-004 (AI) “reaches maturity”; AI-004 (AI) “instruct us otherwise”
+- Flagged late after round 2 (words were already there): AI-002 (AI) “Otherwise your application will be cancelled and you will need to start again from the beginning.”
 
 ### L2: Account email mixing a promotion, a card block and jargon; the long card sentence and "Last chance" are kept on purpose.
 
 Outcome: stopped after 3 rounds.
 
-| Round | Findings (code / AI) | Marked Fix | Draft calls | Changes | Flags | Questions | Not fixed | Still found | New next round (code / AI) |
+| Round | Findings (code / AI) | Marked Fix | Draft calls | Changes | Flags | Questions | Not fixed | Still found | New next round (introduced / flagged late) |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | 18 (11 / 7) | 16 | 1 | 16 | 0 | 1 | 0 | 0 | 2 / 2 |
-| 2 | 5 (3 / 2) | 2 | 1 | 2 | 0 | 0 | 0 | 0 | 1 / 1 |
-| 3 | 4 (3 / 1) | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 / 1 |
+| 1 | 17 (11 / 6) | 15 | 1 | 15 | 0 | 1 | 0 | 0 | 2 / 1 |
+| 2 | 4 (1 / 3) | 3 | 1 | 3 | 0 | 0 | 0 | 0 | 2 / 0 |
+| 3 | 3 (2 / 1) | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 / 1 |
 
 - Round 1 questions: FM-002 “01/12/2026”
-- New after round 1: PL-001 “To unblock it, log in to the app, go to Settings, choose Personal Information and re-submit your identity documents within 48 hours so we can keep your card active.”; PL-001 “If you hold a fixed deposit with us, any earned interest will be credited when your fixed deposit ends, net of applicable tax deducted at source.”; AI-002 “Your debit card has been temporarily blocked because your details need updating.”; AI-004 “net of applicable tax deducted at source”
-- New after round 2: PL-001 “If you hold a fixed deposit with us, any earned interest will be credited when your fixed deposit ends, after any tax that is taken off before you receive it.”; AI-002 “so your debit card is on hold”
-- New after round 3: AI-002 “we've paused your debit card for now”
+- Introduced by the round 1 draft: AI-002 (AI) “If we don't receive your documents in time, we may have to cancel your card. Pending transactions may also be affected.”; AI-004 (AI) “net of applicable tax taken off before payment”
+- Flagged late after round 1 (words were already there): AI-004 (AI) “credited upon maturity”
+- Introduced by the round 2 draft: AI-002 (AI) “your card will stay blocked”; PL-001 (rule) “If you hold a fixed deposit with us, any earned interest will be paid when your fixed deposit ends, after any tax has been taken off.”
+- Flagged late after round 3 (words were already there): AI-002 (AI) “Your debit card has been temporarily blocked because your details need updating.”
 
 ### L3: Short notification with a few problems and an ambiguous date.
 
 Outcome: clean after 1 revisions.
 
-| Round | Findings (code / AI) | Marked Fix | Draft calls | Changes | Flags | Questions | Not fixed | Still found | New next round (code / AI) |
+| Round | Findings (code / AI) | Marked Fix | Draft calls | Changes | Flags | Questions | Not fixed | Still found | New next round (introduced / flagged late) |
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | 5 (4 / 1) | 5 | 1 | 4 | 0 | 1 | 0 | 0 | 0 / 0 |
 | 2 | 0 (0 / 0) | 0 | – | – | – | – | – | – | – |
@@ -117,7 +118,7 @@ Outcome: clean after 1 revisions.
 
 Across the loop:
 
-- Drafts: 6; findings marked Fix: 43; still found after approving: 0
+- Drafts: 7; findings marked Fix: 44; still found after approving: 0
 - Flags per draft: 0.0; questions asked: 4; drafts that needed a second try: 0
-- New findings after approving: 4 from the rule checks, 6 from the AI checks
-- Cost of the loop at list price: US$0.126
+- New findings after approving: 6 introduced by drafts, 5 flagged late on words that were already there
+- Cost of the loop at list price: US$0.136

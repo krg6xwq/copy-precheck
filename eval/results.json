@@ -1,7 +1,7 @@
 {
   "run": "2026-10-28",
   "model": "claude-sonnet-5-5 (effort: low)",
-  "rulesVersion": "0.6",
+  "rulesVersion": "0.7",
   "runsPerSample": 3,
   "price": {
     "input": 2,
@@ -532,9 +532,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1803,
+        "inputTokens": 1877,
         "outputTokens": 10,
-        "ms": 1794
+        "ms": 1147
       },
       {
         "sample": "T01",
@@ -543,9 +543,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1803,
+        "inputTokens": 1877,
         "outputTokens": 10,
-        "ms": 1066
+        "ms": 1365
       },
       {
         "sample": "T01",
@@ -554,9 +554,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1803,
+        "inputTokens": 1877,
         "outputTokens": 10,
-        "ms": 1087
+        "ms": 1114
       },
       {
         "sample": "T03",
@@ -565,9 +565,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1774,
+        "inputTokens": 1848,
         "outputTokens": 10,
-        "ms": 1159
+        "ms": 2977
       },
       {
         "sample": "T03",
@@ -576,9 +576,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1774,
+        "inputTokens": 1848,
         "outputTokens": 10,
-        "ms": 1533
+        "ms": 3265
       },
       {
         "sample": "T03",
@@ -587,9 +587,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1774,
+        "inputTokens": 1848,
         "outputTokens": 10,
-        "ms": 878
+        "ms": 3227
       },
       {
         "sample": "T05",
@@ -598,9 +598,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1738,
+        "inputTokens": 1812,
         "outputTokens": 10,
-        "ms": 895
+        "ms": 930
       },
       {
         "sample": "T05",
@@ -609,9 +609,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1738,
+        "inputTokens": 1812,
         "outputTokens": 10,
-        "ms": 1171
+        "ms": 1035
       },
       {
         "sample": "T05",
@@ -620,9 +620,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1738,
+        "inputTokens": 1812,
         "outputTokens": 10,
-        "ms": 798
+        "ms": 942
       },
       {
         "sample": "T06",
@@ -631,9 +631,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1705,
+        "inputTokens": 1779,
         "outputTokens": 10,
-        "ms": 921
+        "ms": 1550
       },
       {
         "sample": "T06",
@@ -642,9 +642,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1705,
+        "inputTokens": 1779,
         "outputTokens": 10,
-        "ms": 973
+        "ms": 907
       },
       {
         "sample": "T06",
@@ -653,9 +653,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1705,
+        "inputTokens": 1779,
         "outputTokens": 10,
-        "ms": 936
+        "ms": 844
       },
       {
         "sample": "T07",
@@ -666,9 +666,9 @@
         ],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1721,
-        "outputTokens": 122,
-        "ms": 1779
+        "inputTokens": 1795,
+        "outputTokens": 115,
+        "ms": 1514
       },
       {
         "sample": "T07",
@@ -679,9 +679,9 @@
         ],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1721,
-        "outputTokens": 106,
-        "ms": 1574
+        "inputTokens": 1795,
+        "outputTokens": 116,
+        "ms": 1182
       },
       {
         "sample": "T07",
@@ -692,9 +692,9 @@
         ],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1721,
-        "outputTokens": 122,
-        "ms": 1494
+        "inputTokens": 1795,
+        "outputTokens": 114,
+        "ms": 1166
       },
       {
         "sample": "T08",
@@ -703,9 +703,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1815,
+        "inputTokens": 1889,
         "outputTokens": 10,
-        "ms": 1019
+        "ms": 1384
       },
       {
         "sample": "T08",
@@ -714,9 +714,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1815,
+        "inputTokens": 1889,
         "outputTokens": 10,
-        "ms": 1053
+        "ms": 968
       },
       {
         "sample": "T08",
@@ -725,33 +725,33 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1815,
+        "inputTokens": 1889,
         "outputTokens": 10,
-        "ms": 2069
+        "ms": 884
       },
       {
         "sample": "T10",
         "run": 1,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 1,
-        "rejected": [],
-        "inputTokens": 1799,
-        "outputTokens": 120,
-        "ms": 1874
-      },
-      {
-        "sample": "T10",
-        "run": 2,
         "status": "done",
         "aiFlagged": [
           "AI-004"
         ],
-        "merged": 0,
+        "merged": 1,
         "rejected": [],
-        "inputTokens": 1799,
-        "outputTokens": 85,
-        "ms": 1446
+        "inputTokens": 1873,
+        "outputTokens": 191,
+        "ms": 2702
+      },
+      {
+        "sample": "T10",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 1,
+        "rejected": [],
+        "inputTokens": 1873,
+        "outputTokens": 124,
+        "ms": 2621
       },
       {
         "sample": "T10",
@@ -760,35 +760,31 @@
         "aiFlagged": [],
         "merged": 1,
         "rejected": [],
-        "inputTokens": 1799,
-        "outputTokens": 121,
-        "ms": 1752
+        "inputTokens": 1873,
+        "outputTokens": 157,
+        "ms": 1988
       },
       {
         "sample": "T11",
         "run": 1,
         "status": "done",
-        "aiFlagged": [
-          "AI-001"
-        ],
+        "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1741,
-        "outputTokens": 102,
-        "ms": 1488
+        "inputTokens": 1815,
+        "outputTokens": 10,
+        "ms": 1266
       },
       {
         "sample": "T11",
         "run": 2,
         "status": "done",
-        "aiFlagged": [
-          "AI-001"
-        ],
+        "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1741,
-        "outputTokens": 112,
-        "ms": 1740
+        "inputTokens": 1815,
+        "outputTokens": 10,
+        "ms": 943
       },
       {
         "sample": "T11",
@@ -797,9 +793,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1741,
+        "inputTokens": 1815,
         "outputTokens": 10,
-        "ms": 893
+        "ms": 977
       },
       {
         "sample": "T12",
@@ -808,9 +804,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1741,
+        "inputTokens": 1815,
         "outputTokens": 10,
-        "ms": 1014
+        "ms": 765
       },
       {
         "sample": "T12",
@@ -819,152 +815,152 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1741,
+        "inputTokens": 1815,
+        "outputTokens": 10,
+        "ms": 766
+      },
+      {
+        "sample": "T12",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1815,
+        "outputTokens": 10,
+        "ms": 1090
+      },
+      {
+        "sample": "T13",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1791,
+        "outputTokens": 10,
+        "ms": 1058
+      },
+      {
+        "sample": "T13",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1791,
+        "outputTokens": 10,
+        "ms": 2192
+      },
+      {
+        "sample": "T13",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1791,
+        "outputTokens": 10,
+        "ms": 1151
+      },
+      {
+        "sample": "T16",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1814,
+        "outputTokens": 10,
+        "ms": 1034
+      },
+      {
+        "sample": "T16",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1814,
+        "outputTokens": 10,
+        "ms": 828
+      },
+      {
+        "sample": "T16",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1814,
+        "outputTokens": 10,
+        "ms": 892
+      },
+      {
+        "sample": "T17",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1811,
+        "outputTokens": 10,
+        "ms": 1036
+      },
+      {
+        "sample": "T17",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1811,
+        "outputTokens": 10,
+        "ms": 948
+      },
+      {
+        "sample": "T17",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1811,
+        "outputTokens": 10,
+        "ms": 757
+      },
+      {
+        "sample": "T18",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1804,
+        "outputTokens": 10,
+        "ms": 1008
+      },
+      {
+        "sample": "T18",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1804,
         "outputTokens": 10,
         "ms": 1077
       },
       {
-        "sample": "T12",
-        "run": 3,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1741,
-        "outputTokens": 10,
-        "ms": 1105
-      },
-      {
-        "sample": "T13",
-        "run": 1,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1717,
-        "outputTokens": 10,
-        "ms": 1467
-      },
-      {
-        "sample": "T13",
-        "run": 2,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1717,
-        "outputTokens": 10,
-        "ms": 1897
-      },
-      {
-        "sample": "T13",
-        "run": 3,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1717,
-        "outputTokens": 10,
-        "ms": 2018
-      },
-      {
-        "sample": "T16",
-        "run": 1,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1740,
-        "outputTokens": 10,
-        "ms": 949
-      },
-      {
-        "sample": "T16",
-        "run": 2,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1740,
-        "outputTokens": 10,
-        "ms": 947
-      },
-      {
-        "sample": "T16",
-        "run": 3,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1740,
-        "outputTokens": 10,
-        "ms": 854
-      },
-      {
-        "sample": "T17",
-        "run": 1,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1737,
-        "outputTokens": 10,
-        "ms": 866
-      },
-      {
-        "sample": "T17",
-        "run": 2,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1737,
-        "outputTokens": 10,
-        "ms": 1044
-      },
-      {
-        "sample": "T17",
-        "run": 3,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1737,
-        "outputTokens": 10,
-        "ms": 1007
-      },
-      {
-        "sample": "T18",
-        "run": 1,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1730,
-        "outputTokens": 10,
-        "ms": 909
-      },
-      {
-        "sample": "T18",
-        "run": 2,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1730,
-        "outputTokens": 10,
-        "ms": 1648
-      },
-      {
         "sample": "T18",
         "run": 3,
         "status": "done",
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1730,
+        "inputTokens": 1804,
         "outputTokens": 10,
-        "ms": 1855
+        "ms": 940
       },
       {
         "sample": "T19",
@@ -973,9 +969,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1743,
+        "inputTokens": 1817,
         "outputTokens": 10,
-        "ms": 899
+        "ms": 975
       },
       {
         "sample": "T19",
@@ -984,108 +980,108 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1743,
+        "inputTokens": 1817,
+        "outputTokens": 10,
+        "ms": 1721
+      },
+      {
+        "sample": "T19",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1817,
+        "outputTokens": 10,
+        "ms": 1142
+      },
+      {
+        "sample": "T20",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1823,
+        "outputTokens": 10,
+        "ms": 1439
+      },
+      {
+        "sample": "T20",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1823,
+        "outputTokens": 10,
+        "ms": 937
+      },
+      {
+        "sample": "T20",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1823,
+        "outputTokens": 10,
+        "ms": 1379
+      },
+      {
+        "sample": "T21",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1822,
+        "outputTokens": 10,
+        "ms": 2638
+      },
+      {
+        "sample": "T21",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1822,
+        "outputTokens": 10,
+        "ms": 920
+      },
+      {
+        "sample": "T21",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1822,
+        "outputTokens": 10,
+        "ms": 1516
+      },
+      {
+        "sample": "T22",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1780,
         "outputTokens": 10,
         "ms": 776
       },
       {
-        "sample": "T19",
-        "run": 3,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1743,
-        "outputTokens": 10,
-        "ms": 916
-      },
-      {
-        "sample": "T20",
-        "run": 1,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1749,
-        "outputTokens": 10,
-        "ms": 718
-      },
-      {
-        "sample": "T20",
-        "run": 2,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1749,
-        "outputTokens": 10,
-        "ms": 755
-      },
-      {
-        "sample": "T20",
-        "run": 3,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1749,
-        "outputTokens": 10,
-        "ms": 806
-      },
-      {
-        "sample": "T21",
-        "run": 1,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1748,
-        "outputTokens": 10,
-        "ms": 1157
-      },
-      {
-        "sample": "T21",
-        "run": 2,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1748,
-        "outputTokens": 10,
-        "ms": 1188
-      },
-      {
-        "sample": "T21",
-        "run": 3,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1748,
-        "outputTokens": 10,
-        "ms": 1211
-      },
-      {
-        "sample": "T22",
-        "run": 1,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1706,
-        "outputTokens": 10,
-        "ms": 661
-      },
-      {
         "sample": "T22",
         "run": 2,
         "status": "done",
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1706,
+        "inputTokens": 1780,
         "outputTokens": 10,
-        "ms": 721
+        "ms": 818
       },
       {
         "sample": "T22",
@@ -1094,31 +1090,31 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1706,
-        "outputTokens": 10,
-        "ms": 707
-      },
-      {
-        "sample": "T23",
-        "run": 1,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1719,
+        "inputTokens": 1780,
         "outputTokens": 10,
         "ms": 748
       },
       {
         "sample": "T23",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1793,
+        "outputTokens": 10,
+        "ms": 791
+      },
+      {
+        "sample": "T23",
         "run": 2,
         "status": "done",
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1719,
+        "inputTokens": 1793,
         "outputTokens": 10,
-        "ms": 757
+        "ms": 838
       },
       {
         "sample": "T23",
@@ -1127,9 +1123,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1719,
+        "inputTokens": 1793,
         "outputTokens": 10,
-        "ms": 682
+        "ms": 907
       },
       {
         "sample": "T24",
@@ -1140,20 +1136,22 @@
         ],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1720,
-        "outputTokens": 113,
-        "ms": 1709
+        "inputTokens": 1794,
+        "outputTokens": 109,
+        "ms": 1506
       },
       {
         "sample": "T24",
         "run": 2,
         "status": "done",
-        "aiFlagged": [],
+        "aiFlagged": [
+          "AI-003"
+        ],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1720,
-        "outputTokens": 240,
-        "ms": 2887
+        "inputTokens": 1794,
+        "outputTokens": 108,
+        "ms": 1546
       },
       {
         "sample": "T24",
@@ -1164,9 +1162,9 @@
         ],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1720,
-        "outputTokens": 113,
-        "ms": 2117
+        "inputTokens": 1794,
+        "outputTokens": 121,
+        "ms": 1495
       },
       {
         "sample": "T25",
@@ -1175,9 +1173,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1725,
+        "inputTokens": 1799,
         "outputTokens": 10,
-        "ms": 816
+        "ms": 861
       },
       {
         "sample": "T25",
@@ -1186,186 +1184,186 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1725,
-        "outputTokens": 10,
-        "ms": 980
-      },
-      {
-        "sample": "T25",
-        "run": 3,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1725,
-        "outputTokens": 10,
-        "ms": 982
-      },
-      {
-        "sample": "T26",
-        "run": 1,
-        "status": "done",
-        "aiFlagged": [
-          "AI-004"
-        ],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1727,
-        "outputTokens": 172,
-        "ms": 2210
-      },
-      {
-        "sample": "T26",
-        "run": 2,
-        "status": "done",
-        "aiFlagged": [
-          "AI-004"
-        ],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1727,
-        "outputTokens": 176,
-        "ms": 1830
-      },
-      {
-        "sample": "T26",
-        "run": 3,
-        "status": "done",
-        "aiFlagged": [
-          "AI-004"
-        ],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1727,
-        "outputTokens": 167,
-        "ms": 1811
-      },
-      {
-        "sample": "T27",
-        "run": 1,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1754,
-        "outputTokens": 10,
-        "ms": 1305
-      },
-      {
-        "sample": "T27",
-        "run": 2,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1754,
-        "outputTokens": 10,
-        "ms": 1052
-      },
-      {
-        "sample": "T27",
-        "run": 3,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1754,
-        "outputTokens": 10,
-        "ms": 862
-      },
-      {
-        "sample": "T28",
-        "run": 1,
-        "status": "done",
-        "aiFlagged": [
-          "AI-002"
-        ],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1715,
-        "outputTokens": 112,
-        "ms": 1606
-      },
-      {
-        "sample": "T28",
-        "run": 2,
-        "status": "done",
-        "aiFlagged": [
-          "AI-002"
-        ],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1715,
-        "outputTokens": 107,
-        "ms": 1483
-      },
-      {
-        "sample": "T28",
-        "run": 3,
-        "status": "done",
-        "aiFlagged": [
-          "AI-002"
-        ],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1715,
-        "outputTokens": 140,
-        "ms": 1948
-      },
-      {
-        "sample": "T29",
-        "run": 1,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1736,
-        "outputTokens": 10,
-        "ms": 899
-      },
-      {
-        "sample": "T29",
-        "run": 2,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1736,
-        "outputTokens": 10,
-        "ms": 774
-      },
-      {
-        "sample": "T29",
-        "run": 3,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1736,
-        "outputTokens": 10,
-        "ms": 1355
-      },
-      {
-        "sample": "T30",
-        "run": 1,
-        "status": "done",
-        "aiFlagged": [],
-        "merged": 0,
-        "rejected": [],
-        "inputTokens": 1768,
+        "inputTokens": 1799,
         "outputTokens": 10,
         "ms": 831
       },
       {
+        "sample": "T25",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1799,
+        "outputTokens": 10,
+        "ms": 805
+      },
+      {
+        "sample": "T26",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [
+          "AI-004"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1801,
+        "outputTokens": 167,
+        "ms": 1910
+      },
+      {
+        "sample": "T26",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [
+          "AI-004"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1801,
+        "outputTokens": 172,
+        "ms": 1817
+      },
+      {
+        "sample": "T26",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [
+          "AI-004"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1801,
+        "outputTokens": 169,
+        "ms": 2585
+      },
+      {
+        "sample": "T27",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1828,
+        "outputTokens": 10,
+        "ms": 896
+      },
+      {
+        "sample": "T27",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1828,
+        "outputTokens": 10,
+        "ms": 848
+      },
+      {
+        "sample": "T27",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1828,
+        "outputTokens": 10,
+        "ms": 1437
+      },
+      {
+        "sample": "T28",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [
+          "AI-002"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1789,
+        "outputTokens": 112,
+        "ms": 1759
+      },
+      {
+        "sample": "T28",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [
+          "AI-002"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1789,
+        "outputTokens": 115,
+        "ms": 1412
+      },
+      {
+        "sample": "T28",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [
+          "AI-002"
+        ],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1789,
+        "outputTokens": 115,
+        "ms": 1670
+      },
+      {
+        "sample": "T29",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1810,
+        "outputTokens": 10,
+        "ms": 1022
+      },
+      {
+        "sample": "T29",
+        "run": 2,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1810,
+        "outputTokens": 10,
+        "ms": 719
+      },
+      {
+        "sample": "T29",
+        "run": 3,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1810,
+        "outputTokens": 10,
+        "ms": 760
+      },
+      {
+        "sample": "T30",
+        "run": 1,
+        "status": "done",
+        "aiFlagged": [],
+        "merged": 0,
+        "rejected": [],
+        "inputTokens": 1842,
+        "outputTokens": 10,
+        "ms": 2328
+      },
+      {
         "sample": "T30",
         "run": 2,
         "status": "done",
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1768,
+        "inputTokens": 1842,
         "outputTokens": 10,
-        "ms": 763
+        "ms": 1970
       },
       {
         "sample": "T30",
@@ -1374,9 +1372,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1768,
+        "inputTokens": 1842,
         "outputTokens": 10,
-        "ms": 854
+        "ms": 1946
       },
       {
         "sample": "T31",
@@ -1385,9 +1383,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1724,
+        "inputTokens": 1798,
         "outputTokens": 10,
-        "ms": 1127
+        "ms": 684
       },
       {
         "sample": "T31",
@@ -1396,9 +1394,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1724,
+        "inputTokens": 1798,
         "outputTokens": 10,
-        "ms": 1033
+        "ms": 730
       },
       {
         "sample": "T31",
@@ -1407,9 +1405,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1724,
+        "inputTokens": 1798,
         "outputTokens": 10,
-        "ms": 988
+        "ms": 768
       },
       {
         "sample": "T33",
@@ -1418,9 +1416,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1742,
+        "inputTokens": 1816,
         "outputTokens": 10,
-        "ms": 864
+        "ms": 755
       },
       {
         "sample": "T33",
@@ -1429,9 +1427,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1742,
+        "inputTokens": 1816,
         "outputTokens": 10,
-        "ms": 715
+        "ms": 834
       },
       {
         "sample": "T33",
@@ -1440,9 +1438,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1742,
+        "inputTokens": 1816,
         "outputTokens": 10,
-        "ms": 819
+        "ms": 880
       },
       {
         "sample": "T34",
@@ -1451,9 +1449,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1742,
+        "inputTokens": 1816,
         "outputTokens": 10,
-        "ms": 1656
+        "ms": 1365
       },
       {
         "sample": "T34",
@@ -1462,9 +1460,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1742,
+        "inputTokens": 1816,
         "outputTokens": 10,
-        "ms": 1487
+        "ms": 1401
       },
       {
         "sample": "T34",
@@ -1473,9 +1471,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1742,
+        "inputTokens": 1816,
         "outputTokens": 10,
-        "ms": 1702
+        "ms": 1163
       },
       {
         "sample": "T35",
@@ -1484,9 +1482,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1722,
+        "inputTokens": 1796,
         "outputTokens": 10,
-        "ms": 1448
+        "ms": 887
       },
       {
         "sample": "T35",
@@ -1495,9 +1493,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1722,
+        "inputTokens": 1796,
         "outputTokens": 10,
-        "ms": 1081
+        "ms": 997
       },
       {
         "sample": "T35",
@@ -1506,9 +1504,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1722,
+        "inputTokens": 1796,
         "outputTokens": 10,
-        "ms": 934
+        "ms": 2504
       },
       {
         "sample": "T38",
@@ -1517,9 +1515,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1765,
+        "inputTokens": 1839,
         "outputTokens": 10,
-        "ms": 1103
+        "ms": 952
       },
       {
         "sample": "T38",
@@ -1528,9 +1526,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1765,
+        "inputTokens": 1839,
         "outputTokens": 10,
-        "ms": 1158
+        "ms": 985
       },
       {
         "sample": "T38",
@@ -1539,9 +1537,9 @@
         "aiFlagged": [],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1765,
+        "inputTokens": 1839,
         "outputTokens": 10,
-        "ms": 1291
+        "ms": 895
       },
       {
         "sample": "T39",
@@ -1552,9 +1550,9 @@
         ],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1747,
-        "outputTokens": 221,
-        "ms": 3041
+        "inputTokens": 1821,
+        "outputTokens": 218,
+        "ms": 2393
       },
       {
         "sample": "T39",
@@ -1565,9 +1563,9 @@
         ],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1747,
-        "outputTokens": 231,
-        "ms": 2356
+        "inputTokens": 1821,
+        "outputTokens": 219,
+        "ms": 2379
       },
       {
         "sample": "T39",
@@ -1578,9 +1576,9 @@
         ],
         "merged": 0,
         "rejected": [],
-        "inputTokens": 1747,
-        "outputTokens": 215,
-        "ms": 2190
+        "inputTokens": 1821,
+        "outputTokens": 206,
+        "ms": 2669
       }
     ],
     "rules": {
@@ -1588,7 +1586,7 @@
         "shouldFlag": 6,
         "caught": 6,
         "missed": 0,
-        "falseAlarms": 2
+        "falseAlarms": 0
       },
       "AI-002": {
         "shouldFlag": 3,
@@ -1598,8 +1596,8 @@
       },
       "AI-003": {
         "shouldFlag": 3,
-        "caught": 2,
-        "missed": 1,
+        "caught": 3,
+        "missed": 0,
         "falseAlarms": 0
       },
       "AI-004": {
@@ -1617,18 +1615,18 @@
       "rounds": [
         {
           "round": 1,
-          "findings": 17,
+          "findings": 16,
           "codeFindings": 10,
-          "aiFindings": 7,
-          "markedFix": 16,
+          "aiFindings": 6,
+          "markedFix": 15,
           "dismissed": 1,
-          "ms": 12101,
-          "inputTokens": 5597,
-          "outputTokens": 1818,
+          "ms": 10095,
+          "inputTokens": 5607,
+          "outputTokens": 1599,
           "draft": {
             "status": "ready",
             "calls": 1,
-            "changes": 14,
+            "changes": 12,
             "flags": {},
             "questions": [
               "FM-001 “$500”",
@@ -1638,99 +1636,26 @@
           },
           "stillFound": 0,
           "newNext": {
-            "code": [
-              "PL-001 “When your fixed deposit reaches maturity, your original deposit and interest will be placed into a new deposit for the same period unless you instruct us otherwise.”"
+            "introduced": [
+              "AI-001 (AI) “Our fund managers have a strong track record.”",
+              "PL-001 (rule) “When your fixed deposit reaches maturity, your original deposit and interest will be placed into a new fixed deposit for the same period unless you instruct us otherwise.”"
             ],
-            "ai": [
-              "AI-002 “Otherwise, your application will be cancelled and you will need to start again from the beginning.”",
-              "AI-004 “reaches maturity”"
-            ]
-          }
-        },
-        {
-          "round": 2,
-          "findings": 4,
-          "codeFindings": 2,
-          "aiFindings": 2,
-          "markedFix": 3,
-          "dismissed": 1,
-          "ms": 6155,
-          "inputTokens": 4415,
-          "outputTokens": 829,
-          "draft": {
-            "status": "ready",
-            "calls": 1,
-            "changes": 2,
-            "flags": {},
-            "questions": [],
-            "unfixed": []
-          },
-          "stillFound": 0,
-          "newNext": {
-            "code": [],
-            "ai": []
-          }
-        },
-        {
-          "round": 3,
-          "findings": 1,
-          "codeFindings": 1,
-          "aiFindings": 0,
-          "markedFix": 0,
-          "dismissed": 1,
-          "ms": 1210,
-          "inputTokens": 2040,
-          "outputTokens": 10
-        }
-      ],
-      "outcome": "nothing left to fix after 2 revisions (only dismissed findings)"
-    },
-    {
-      "id": "L2",
-      "note": "Account email mixing a promotion, a card block and jargon; the long card sentence and \"Last chance\" are kept on purpose.",
-      "rounds": [
-        {
-          "round": 1,
-          "findings": 18,
-          "codeFindings": 11,
-          "aiFindings": 7,
-          "markedFix": 16,
-          "dismissed": 2,
-          "ms": 12050,
-          "inputTokens": 5809,
-          "outputTokens": 1720,
-          "draft": {
-            "status": "ready",
-            "calls": 1,
-            "changes": 16,
-            "flags": {},
-            "questions": [
-              "FM-002 “01/12/2026”"
-            ],
-            "unfixed": []
-          },
-          "stillFound": 0,
-          "newNext": {
-            "code": [
-              "PL-001 “To unblock it, log in to the app, go to Settings, choose Personal Information and re-submit your identity documents within 48 hours so we can keep your card active.”",
-              "PL-001 “If you hold a fixed deposit with us, any earned interest will be credited when your fixed deposit ends, net of applicable tax deducted at source.”"
-            ],
-            "ai": [
-              "AI-002 “Your debit card has been temporarily blocked because your details need updating.”",
-              "AI-004 “net of applicable tax deducted at source”"
+            "flaggedLate": [
+              "AI-004 (AI) “reaches maturity”",
+              "AI-004 (AI) “instruct us otherwise”"
             ]
           }
         },
         {
           "round": 2,
           "findings": 5,
-          "codeFindings": 3,
-          "aiFindings": 2,
-          "markedFix": 2,
-          "dismissed": 3,
-          "ms": 7031,
-          "inputTokens": 4541,
-          "outputTokens": 727,
+          "codeFindings": 2,
+          "aiFindings": 3,
+          "markedFix": 4,
+          "dismissed": 1,
+          "ms": 5869,
+          "inputTokens": 4594,
+          "outputTokens": 770,
           "draft": {
             "status": "ready",
             "calls": 1,
@@ -1741,24 +1666,22 @@
           },
           "stillFound": 0,
           "newNext": {
-            "code": [
-              "PL-001 “If you hold a fixed deposit with us, any earned interest will be credited when your fixed deposit ends, after any tax that is taken off before you receive it.”"
-            ],
-            "ai": [
-              "AI-002 “so your debit card is on hold”"
+            "introduced": [],
+            "flaggedLate": [
+              "AI-002 (AI) “Otherwise your application will be cancelled and you will need to start again from the beginning.”"
             ]
           }
         },
         {
           "round": 3,
-          "findings": 4,
-          "codeFindings": 3,
+          "findings": 2,
+          "codeFindings": 1,
           "aiFindings": 1,
           "markedFix": 1,
-          "dismissed": 3,
-          "ms": 4632,
-          "inputTokens": 4371,
-          "outputTokens": 533,
+          "dismissed": 1,
+          "ms": 4797,
+          "inputTokens": 4243,
+          "outputTokens": 590,
           "draft": {
             "status": "ready",
             "calls": 1,
@@ -1769,9 +1692,98 @@
           },
           "stillFound": 0,
           "newNext": {
-            "code": [],
-            "ai": [
-              "AI-002 “we've paused your debit card for now”"
+            "introduced": [],
+            "flaggedLate": []
+          }
+        }
+      ],
+      "outcome": "stopped after 3 rounds"
+    },
+    {
+      "id": "L2",
+      "note": "Account email mixing a promotion, a card block and jargon; the long card sentence and \"Last chance\" are kept on purpose.",
+      "rounds": [
+        {
+          "round": 1,
+          "findings": 17,
+          "codeFindings": 11,
+          "aiFindings": 6,
+          "markedFix": 15,
+          "dismissed": 2,
+          "ms": 10702,
+          "inputTokens": 5813,
+          "outputTokens": 1636,
+          "draft": {
+            "status": "ready",
+            "calls": 1,
+            "changes": 15,
+            "flags": {},
+            "questions": [
+              "FM-002 “01/12/2026”"
+            ],
+            "unfixed": []
+          },
+          "stillFound": 0,
+          "newNext": {
+            "introduced": [
+              "AI-002 (AI) “If we don't receive your documents in time, we may have to cancel your card. Pending transactions may also be affected.”",
+              "AI-004 (AI) “net of applicable tax taken off before payment”"
+            ],
+            "flaggedLate": [
+              "AI-004 (AI) “credited upon maturity”"
+            ]
+          }
+        },
+        {
+          "round": 2,
+          "findings": 4,
+          "codeFindings": 1,
+          "aiFindings": 3,
+          "markedFix": 3,
+          "dismissed": 1,
+          "ms": 6327,
+          "inputTokens": 4522,
+          "outputTokens": 878,
+          "draft": {
+            "status": "ready",
+            "calls": 1,
+            "changes": 3,
+            "flags": {},
+            "questions": [],
+            "unfixed": []
+          },
+          "stillFound": 0,
+          "newNext": {
+            "introduced": [
+              "AI-002 (AI) “your card will stay blocked”",
+              "PL-001 (rule) “If you hold a fixed deposit with us, any earned interest will be paid when your fixed deposit ends, after any tax has been taken off.”"
+            ],
+            "flaggedLate": []
+          }
+        },
+        {
+          "round": 3,
+          "findings": 3,
+          "codeFindings": 2,
+          "aiFindings": 1,
+          "markedFix": 1,
+          "dismissed": 2,
+          "ms": 4923,
+          "inputTokens": 4370,
+          "outputTokens": 574,
+          "draft": {
+            "status": "ready",
+            "calls": 1,
+            "changes": 1,
+            "flags": {},
+            "questions": [],
+            "unfixed": []
+          },
+          "stillFound": 0,
+          "newNext": {
+            "introduced": [],
+            "flaggedLate": [
+              "AI-002 (AI) “Your debit card has been temporarily blocked because your details need updating.”"
             ]
           }
         }
@@ -1789,9 +1801,9 @@
           "aiFindings": 1,
           "markedFix": 5,
           "dismissed": 0,
-          "ms": 5286,
-          "inputTokens": 3933,
-          "outputTokens": 493,
+          "ms": 5046,
+          "inputTokens": 4053,
+          "outputTokens": 495,
           "draft": {
             "status": "ready",
             "calls": 1,
@@ -1804,8 +1816,8 @@
           },
           "stillFound": 0,
           "newNext": {
-            "code": [],
-            "ai": []
+            "introduced": [],
+            "flaggedLate": []
           }
         },
         {
@@ -1815,8 +1827,8 @@
           "aiFindings": 0,
           "markedFix": 0,
           "dismissed": 0,
-          "ms": 979,
-          "inputTokens": 1776,
+          "ms": 962,
+          "inputTokens": 1861,
           "outputTokens": 10
         }
       ],

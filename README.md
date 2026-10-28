@@ -66,6 +66,10 @@ Above the results, **Edit copy** lets the reviewer change the words themselves; 
 
 The check runs on the server, so the API key never reaches the browser. Copy is capped at 1,500 characters, and AI checks have a best-effort rate limit; the real cost cap is the spend limit on the key.
 
+## Evaluation
+
+`npm run eval` measures the checker against the test set and runs the review and rewrite loop on sample emails, with the real model (about US$0.50 a run). Results, and what they show, are in [`eval/`](eval/README.md): on the latest run, the code layers matched all 39 samples, the AI checks matched the test set in 92 of 93 runs, the model ignored both prompt-injection samples, and every finding marked Fix was fixed by the draft.
+
 ## Changing a rule
 
 1. Edit [`content/rules.yaml`](content/rules.yaml). The field reference is at the top of the file.
