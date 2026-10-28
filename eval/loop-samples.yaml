@@ -1,0 +1,52 @@
+# Copy for the review and rewrite loop part of the evaluation (scripts/eval.ts).
+# Every name, number and address here is invented. Never add real data.
+#
+# The evaluation plays a simple reviewer: it marks every finding Fix except the
+# rules in `dismiss` (dismissed with `reason`), answers each question with the
+# first option, keeps every flag, and approves the draft.
+
+samples:
+
+  - id: L1
+    context: email-snippet
+    note: Long promotional email with many problems; "Act now" is an approved campaign line.
+    dismiss: [BP-002]
+    reason: Approved by the campaign team
+    text: |
+      Dear {name},
+
+      Great news! Your Tembusu growth account now earns 3.5% interest, and it's completely risk-free. Watch your savings grow without lifting a finger.
+
+      Want even more? Start investing in the Tembusu Global Equity Fund from just $500 a month. Our fund managers have a strong track record, so you can sit back while your money works for you.
+
+      To make sure your first monthly contribution is processed on time, please login to the Tembusu app and set up a GIRO arrangement before 05/11/2026, otherwise your application will be cancelled and you will need to start again from the beginning.
+
+      When your fixed deposit reaches maturity, the principal and interest will be rolled over for the same tenor unless you instruct us otherwise.
+
+      Act now, this offer won't last. Questions? E-mail us at help@tembusu.example.
+
+  - id: L2
+    context: email-snippet
+    note: Account email mixing a promotion, a card block and jargon; the long card sentence and "Last chance" are kept on purpose.
+    dismiss: [BP-002, PL-001]
+    reason: Approved as written
+    text: |
+      Hi {name},
+
+      Your tembusu everyday account has been upgraded! From 01/12/2026 you'll earn 2.8% interest on balances up to $20,000, with guaranteed returns on every dollar you save.
+
+      We also noticed you haven't tried the Tembusu Global Equity Fund yet. Thousands of customers have already doubled their savings, so there's never been a better time to start investing with as little as $100.
+
+      Due to your failure to update your details, your debit card has been temporarily blocked. To unblock it, login to the app, go to Settings, choose Personal Information and re-submit your KYC documents within 48 hours, otherwise your card will be permanently cancelled and any pending transactions will be reversed.
+
+      If you hold a fixed deposit with us, any accrued interest will be credited upon maturity, net of applicable withholding tax.
+
+      Last chance: this upgrade offer ends soon! For help, E-mail help@tembusu.example or call {hotline}.
+
+  - id: L3
+    context: notification
+    note: Short notification with a few problems and an ambiguous date.
+    dismiss: []
+    reason: ""
+    text: |
+      Hi {name}, your October statement for your Tembusu growth account is ready. You earned 2.1% interest this month. Please login to the app before 03/11/2026 to view it, or we'll stop sending you statements.

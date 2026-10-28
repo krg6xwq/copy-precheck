@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "tsx src/cli/check.ts",
-    "guide": "tsx scripts/build-style-guide.ts"
+    "guide": "tsx scripts/build-style-guide.ts",
+    "eval": "tsx scripts/eval.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.1.0",
