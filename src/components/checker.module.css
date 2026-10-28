@@ -216,6 +216,23 @@
   cursor: not-allowed;
 }
 
+/* For actions that erase work ("Clear and start over"): outlined in the blocker red. */
+.dangerButton {
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-blocker);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-blocker-strong);
+  cursor: pointer;
+}
+
+.dangerButton:hover:not(:disabled) {
+  background: var(--color-blocker-bg);
+}
+
 .toggleAccepted {
   background: var(--color-ok-bg);
   border-color: var(--color-ok);

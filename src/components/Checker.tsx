@@ -13,7 +13,6 @@ import { carryDecisions, changeSource, decidable, unfixedLabels, type CarriedDec
 import type { Draft, Flag, NeedsInput } from "@/engine/revise/types";
 import { changedRegions, diffWords } from "@/engine/revise/diff";
 import { CONTEXT_LABELS, findingKey, SEVERITY_LABELS, type Decision } from "@/lib/labels";
-import { downloadReport } from "@/lib/download";
 import type { RoundSummary } from "@/lib/markdown";
 import { CopyBar } from "./CopyBar";
 import { DraftPanel, type AnsweredQuestion, type UndoneFlag } from "./DraftPanel";
@@ -443,7 +442,6 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
     setStatus("Started a new check.");
   }
 
-  const markdownExtras = { comments, round, history };
 
   if (!result) {
     return (
@@ -490,7 +488,6 @@ export function Checker({ samples, rulesVersion, ruleCount, aiAvailable, maxLeng
         onCheckEdit={checkEdit}
         onNewCheck={newCheck}
         onCancelNewCheck={() => setConfirmingNew(false)}
-        onDownload={() => downloadReport(result.report, decisions, result.checkedAt, markdownExtras)}
       />
       )}
       {draftVisible ? (

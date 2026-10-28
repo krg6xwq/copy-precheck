@@ -31,7 +31,6 @@ interface Props {
   onCheckEdit: (text: string, context: Context | "") => void;
   onNewCheck: () => void;
   onCancelNewCheck: () => void;
-  onDownload: () => void;
 }
 
 export function CopyBar(props: Props) {
@@ -175,17 +174,15 @@ export function CopyBar(props: Props) {
         <div className={styles.confirm} role="group" aria-labelledby={ids.confirm}>
           <p id={ids.confirm}>
             <strong>Start a new check?</strong> This clears {props.rounds} {props.rounds === 1 ? "round" : "rounds"} and
-            your decisions. Download the report first if you need it.
+            your decisions. To keep a record, cancel and download the report first.
           </p>
           <div className={styles.buttonRow}>
-            {/* Focus starts on the safe choice, so Enter can't clear the session by accident. */}
-            <button type="button" className={styles.secondaryButton} onClick={props.onDownload} autoFocus>
-              Download report
-            </button>
-            <button type="button" className={styles.secondaryButton} onClick={props.onNewCheck}>
+            {/* Clearing erases work, so it's a danger button, not the brand's "go ahead" green. Cancel is
+                the same size, and focus starts on it, so Enter can't clear the session by accident. */}
+            <button type="button" className={styles.dangerButton} onClick={props.onNewCheck}>
               Clear and start over
             </button>
-            <button type="button" className={styles.textButton} onClick={props.onCancelNewCheck}>
+            <button type="button" className={styles.secondaryButton} onClick={props.onCancelNewCheck} autoFocus>
               Cancel
             </button>
           </div>
