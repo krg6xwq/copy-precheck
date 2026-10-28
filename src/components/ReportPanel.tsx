@@ -63,11 +63,14 @@ function Export({
   decisions,
   checkedAt,
   extras,
+  primary,
 }: {
   report: Report;
   decisions: Record<string, Decision>;
   checkedAt: Date;
   extras: MarkdownExtras;
+  /** Copy text is the main button when there's nothing to draft: the next step is taking the copy away. */
+  primary: boolean;
 }) {
   const [copied, setCopied] = useState<"idle" | "done" | "failed">("idle");
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -91,7 +94,7 @@ function Export({
 
   return (
     <div className={styles.exportActions}>
-      <button type="button" className={styles.secondaryButton} onClick={copy}>
+      <button type="button" className={primary ? styles.primaryButtonSmall : styles.secondaryButton} onClick={copy}>
         Copy text
       </button>
       <button type="button" className={styles.secondaryButton} onClick={download}>
@@ -168,7 +171,6 @@ function gateState(props: Props, report: Report) {
   else if (decided.length < findings.length) blocker = `Decide on every finding first: ${findings.length - decided.length} left.`;
   else if (missingReason.length)
     blocker = `Give a reason for ${missingReason.length === 1 ? "the dismissed blocker or needs-fix finding" : `${missingReason.length} dismissed blocker or needs-fix findings`}.`;
-  else if (accepted.length === 0) blocker = "Nothing to revise: every finding was dismissed.";
 
   const lastRound = props.draftsUsed === MAX_ROUNDS - 1 ? " This is the last AI revision for this check." : "";
   const hint = props.hasDraft
@@ -176,7 +178,15 @@ function gateState(props: Props, report: Report) {
     : (blocker ??
       `Drafts fixes for the ${accepted.length} ${accepted.length === 1 ? "finding" : "findings"} marked Fix. Code checks the draft before you see it.${lastRound}`);
 
-  return { applies, findings, decided, accepted, undecidedSuggestions, blocker, hint };
+  // Nothing to draft: no findings, or every one dismissed (with any reasons given). Then the
+  // draft button goes, and Copy text becomes the main button.
+  const nothingToDraft =
+    !props.hasDraft &&
+    (!applies ||
+      (report.guard.open === 0 && decided.length === findings.length && accepted.length === 0 && missingReason.length === 0));
+  const finalHint = nothingToDraft ? "Nothing left to fix. Copy the text or download the report." : hint;
+
+  return { applies, nothingToDraft, findings, decided, accepted, undecidedSuggestions, blocker, hint: finalHint };
 }
 
 function DraftButton({ props, gate, describedBy }: { props: Props; gate: ReturnType<typeof gateState>; describedBy?: string }) {
@@ -195,7 +205,7 @@ function DraftButton({ props, gate, describedBy }: { props: Props; gate: ReturnT
       aria-describedby={describedBy}
       onClick={props.onDraft}
     >
-      {gate.accepted.length === 0 && gate.blocker?.startsWith("Nothing") ? "Nothing to revise" : "Draft a revision"}
+      Draft a revision
     </button>
   );
 }
@@ -307,19 +317,18 @@ export function ReportPanel(props: Props) {
           </div>
           <div className={styles.headerActions}>
             <div className={styles.buttonRow}>
-              {gate.applies && <DraftButton props={props} gate={gate} describedBy="gate-reason" />}
+              {!gate.nothingToDraft && <DraftButton props={props} gate={gate} describedBy="gate-reason" />}
               <Export
                 report={report}
                 decisions={decisions}
                 checkedAt={result.checkedAt}
                 extras={{ comments: props.comments, round: props.round, history: props.history }}
+                primary={gate.nothingToDraft}
               />
             </div>
-            {gate.applies && (
-              <p id="gate-reason" className={styles.headerHint}>
-                {gate.hint}
-              </p>
-            )}
+            <p id="gate-reason" className={styles.headerHint}>
+              {gate.hint}
+            </p>
           </div>
         </div>
       </div>
@@ -397,7 +406,7 @@ export function ReportPanel(props: Props) {
         </FindingGroup>
       )}
 
-      {gate.applies && (
+      {!gate.nothingToDraft && (
         <div className={styles.endActions}>
           {progress}
           <DraftButton props={props} gate={gate} describedBy="gate-reason" />
